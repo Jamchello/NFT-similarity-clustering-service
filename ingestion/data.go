@@ -4,18 +4,40 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 )
 
 type Asset struct {
-	ID           uint64
-	Collection   string
-	Image_Url    string
-	Combat       uint64
-	Constitution uint64
-	Luck         uint64
-	Plunder      uint64
-	Properties   string
+	ID               uint64
+	UpdatedAt        uint
+	Collection       string
+	ImageUrl         string
+	Combat           uint64
+	Constitution     uint64
+	Luck             uint64
+	Plunder          uint64
+	Scenery          string
+	LeftArm          string
+	Body             string
+	BackItem         string
+	Pants            string
+	Footwear         string
+	RightArm         string
+	Shirts           string
+	Hat              string
+	HipItem          string
+	Tattoo           string
+	Face             string
+	BackgroundAccent string
+	Necklace         string
+	Head             string
+	Background       string
+	FacialHair       string
+	BackHand         string
+	FrontHand        string
+	Overcoat         string
+	Pet              string
 }
 
 type Sale struct {
@@ -28,6 +50,43 @@ type Sale struct {
 	Asset  uint64
 }
 
+func CreateAssetFromNote(note AlgoSeasNote, collectionName string, assetId string, updatedAt uint) Asset {
+	idInt, _ := strconv.ParseUint(assetId, 10, 64)
+	return Asset{
+		ID:               idInt,
+		UpdatedAt:        updatedAt,
+		Collection:       "AlgoSeas Pirates",
+		ImageUrl:         note.MediaURL,
+		Combat:           uint64(note.Properties.Combat),
+		Constitution:     uint64(note.Properties.Constitution),
+		Luck:             uint64(note.Properties.Luck),
+		Plunder:          uint64(note.Properties.Plunder),
+		Scenery:          note.Properties.Scenery,
+		LeftArm:          note.Properties.LeftArm,
+		Body:             note.Properties.Body,
+		BackItem:         note.Properties.BackItem,
+		Pants:            note.Properties.Pants,
+		Footwear:         note.Properties.Footwear,
+		RightArm:         note.Properties.RightArm,
+		Shirts:           note.Properties.Shirts,
+		Hat:              note.Properties.Hat,
+		HipItem:          note.Properties.HipItem,
+		Tattoo:           note.Properties.Tattoo,
+		Face:             note.Properties.Face,
+		BackgroundAccent: note.Properties.BackgroundAccent,
+		Necklace:         note.Properties.Necklace,
+		Head:             note.Properties.Head,
+		Background:       note.Properties.Background,
+		FacialHair:       note.Properties.FacialHair,
+		BackHand:         note.Properties.BackHand,
+		FrontHand:        note.Properties.FrontHand,
+		Overcoat:         note.Properties.Overcoat,
+		Pet:              note.Properties.Pet,
+	}
+}
+
+// func CreateSale()
+
 func ParseSaleDate(timestamp string) time.Time {
 	layout := "2006-01-02T15:04:05.000Z"
 	t, err := time.Parse(layout, timestamp)
@@ -39,20 +98,42 @@ func ParseSaleDate(timestamp string) time.Time {
 }
 
 func InsertAsset(db *sql.DB, asset Asset) error {
-	stmt, err := db.Prepare("INSERT IGNORE INTO asset VALUES(?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := db.Prepare("REPLACE INTO asset VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
 	_, err = stmt.Exec(
 		asset.ID,
+		asset.UpdatedAt,
 		asset.Collection,
-		asset.Image_Url,
+		asset.ImageUrl,
 		asset.Combat,
 		asset.Constitution,
 		asset.Luck,
 		asset.Plunder,
-		asset.Properties)
-
+		asset.Scenery,
+		asset.LeftArm,
+		asset.Body,
+		asset.BackItem,
+		asset.Pants,
+		asset.Footwear,
+		asset.RightArm,
+		asset.Shirts,
+		asset.HipItem,
+		asset.Tattoo,
+		asset.Face,
+		asset.BackgroundAccent,
+		asset.Necklace,
+		asset.Hat,
+		asset.Head,
+		asset.Background,
+		asset.FacialHair,
+		asset.BackHand,
+		asset.FrontHand,
+		asset.Overcoat,
+		asset.Pet,
+	)
+	stmt.Close()
 	if err != nil {
 		return err
 	}
@@ -60,7 +141,7 @@ func InsertAsset(db *sql.DB, asset Asset) error {
 }
 
 func InsertSale(db *sql.DB, sale Sale) error {
-	stmt, err := db.Prepare("INSERT IGNORE INTO sale(Date,Tx, Buyer, Seller, Algo, Fiat, Asset) VALUES(?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO sale(Date,Tx, Buyer, Seller, Algo, Fiat, Asset) VALUES(?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return err
 	}
@@ -73,7 +154,7 @@ func InsertSale(db *sql.DB, sale Sale) error {
 		sale.Fiat,
 		sale.Asset,
 	)
-
+	stmt.Close()
 	if err != nil {
 		return err
 	}
@@ -88,7 +169,7 @@ func createDb(db *sql.DB) {
 }
 
 func createAssetTable(db *sql.DB) {
-	_, err := db.Exec("CREATE TABLE IF NOT EXISTS `asset` ( `ID` INT unsigned, `Collection` VARCHAR(255) NOT NULL, `Image_Url` TEXT NOT NULL, `Combat` INT unsigned NOT NULL, `Constitution` INT unsigned NOT NULL, `Luck` INT unsigned NOT NULL, `Plunder` INT unsigned NOT NULL, `Properties` TEXT NOT NULL, KEY `Collection_ID_IDX` (`Collection`,`ID`) USING BTREE, PRIMARY KEY (`ID`) );")
+	_, err := db.Exec("CREATE TABLE IF NOT EXISTS `asset` (`ID` INT unsigned, `UpdatedAt` INT unsigned, `Collection` VARCHAR(255) NOT NULL,`ImageUrl` TEXT NOT NULL,`Combat` INT unsigned NOT NULL,`Constitution` INT unsigned NOT NULL,`Luck` INT unsigned NOT NULL,`Plunder` INT unsigned NOT NULL,`Scenery` VARCHAR(255) NOT NULL,`LeftArm` VARCHAR(255) NOT NULL,`Body` VARCHAR(255) NOT NULL,`BackItem` VARCHAR(255) NOT NULL,`Pants` VARCHAR(255) NOT NULL,`Footwear` VARCHAR(255) NOT NULL,`RightArm` VARCHAR(255) NOT NULL,`Shirts` VARCHAR(255) NOT NULL,`HipItem` VARCHAR(255) NOT NULL,`Tattoo` VARCHAR(255) NOT NULL,`Face` VARCHAR(255) NOT NULL,`BackgroundAccent` VARCHAR(255) NOT NULL,`Necklace` VARCHAR(255) NOT NULL,`Hat` VARCHAR(255) NOT NULL,`Head` VARCHAR(255) NOT NULL,`Background` VARCHAR(255) NOT NULL,`FacialHair` VARCHAR(255) NOT NULL,`BackHand` VARCHAR(255) NOT NULL,`FrontHand` VARCHAR(255) NOT NULL,`Overcoat` VARCHAR(255) NOT NULL,`Pet` VARCHAR(255) NOT NULL,KEY `Collection_ID_IDX` (`Collection`,`ID`) USING BTREE,PRIMARY KEY (`ID`));")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -130,4 +211,16 @@ func getLatestIngestedSale(db *sql.DB) time.Time {
 		}
 	}
 	return date
+}
+
+func GetLastAssetUpdate(db *sql.DB) uint {
+	latestIngestedRound := uint(0)
+	rows, _ := db.Query("SELECT UpdatedAt FROM asset ORDER BY UpdatedAt DESC LIMIT 1")
+	for rows.Next() {
+		err := rows.Scan(&latestIngestedRound)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+	return latestIngestedRound
 }
