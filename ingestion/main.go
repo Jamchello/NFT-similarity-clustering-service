@@ -37,29 +37,11 @@ func initialLoad() *sql.DB {
 	seenAssets := make(map[string]bool)
 	if dbNeedsPopulating(db) {
 		fmt.Println("No Data detected, populating the database")
-
-		historicalSalesData := ReadDataFromJson()
 		mintedAssets := GetAllMintedAssets()
 		for _, asset := range mintedAssets {
 			err := InsertAsset(db, asset)
 			if err != nil {
 				fmt.Println("Failed to insert asset", err)
-			}
-		}
-		for _, sale := range historicalSalesData {
-			sale := Sale{
-				Date:   ParseSaleDate(sale.MarketActivity.CreationDate),
-				Tx:     sale.MarketActivity.TxnID,
-				Buyer:  sale.MarketActivity.InitiatorAddress,
-				Seller: sale.MarketActivity.PreviousOwner,
-				Algo:   fmt.Sprintf("%d", sale.MarketActivity.AlgoAmount),
-				Fiat:   "",
-				Asset:  uint64(sale.MarketActivity.AssetID),
-			}
-
-			err := InsertSale(db, sale)
-			if err != nil {
-				fmt.Println("Failed to insert sale", err)
 			}
 		}
 	} else {
@@ -89,7 +71,7 @@ func startPolling(db *sql.DB) {
 					Buyer:  item.MarketActivity.InitiatorAddress,
 					Seller: item.MarketActivity.PreviousOwner,
 					Algo:   fmt.Sprintf("%d", item.MarketActivity.AlgoAmount),
-					Fiat:   "",
+					Fiat:   0,
 					Asset:  uint64(item.MarketActivity.AssetID),
 				}
 				newSales = append(newSales, newSale)

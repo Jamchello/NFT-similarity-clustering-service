@@ -140,7 +140,6 @@ func ReadDataFromJson() []AlgoSeasHistoryItem {
 
 func GetListings() []AlgoSeasListingItem {
 	listings := []AlgoSeasListingItem{}
-
 	res, err := http.Get("https://d3ohz23ah7.execute-api.us-west-2.amazonaws.com/prod/marketplace/listings?type=listing&sortBy=price&sortAscending=false&collectionName=AlgoSeas%20Pirates&limit=500")
 	if err != nil {
 		fmt.Println("Failed to fetch latest listings")
