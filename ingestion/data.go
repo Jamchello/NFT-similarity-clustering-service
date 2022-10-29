@@ -46,7 +46,7 @@ type Sale struct {
 	Buyer  string
 	Seller string
 	Algo   string
-	Fiat   string
+	Fiat   float64
 	Asset  uint64
 }
 
