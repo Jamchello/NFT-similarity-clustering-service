@@ -172,15 +172,10 @@ func generateTest2DArray(x int) [][]float64 {
 
 func testClusters(){
 
-	data := generateTest2DArray(50)
+	data := generateTest2DArray(10)
+	copydata := generateTest2DArray(10)
 
-	
-	//PRINT ORIGINAL ASSET ARRAY
-	for i:=0; i<len(data); i++{
-		fmt.Println(i," Data point ",data[i])
-	}
 
-	
 	var observation []float64
 
 	c,e := clusters.KMeans(20,5, clusters.EuclideanDistance)
@@ -189,7 +184,7 @@ func testClusters(){
 	}
 
 // Use the data to train the clusterer
-	if e = c.Learn(data); e != nil {
+	if e = c.Learn(copydata); e != nil {
 		panic(e)
 	}
 
@@ -197,12 +192,6 @@ func testClusters(){
 
 	fmt.Printf("Assigned observation %v to cluster %d\n", observation, c.Predict(observation))
 	
-
-//WHEN I PRINT DATA AGAIN SOME OF THE ASSET VALUES ARE DIFFERENT
-	for i:=0; i<len(data); i++{
-		fmt.Println(i," Data point ",data[i])
-	}
-
 
 	for index, number := range c.Guesses() {
 		fmt.Println("Index ",index,"Assigned data point ",data[index]," to cluster ",number)
@@ -224,9 +213,48 @@ func compare(){
 	return
 }
 
+func deepCopyArr(origarr [][]float64) [][]float64{
+	copyarr:= [][]float64{}
+	for i:=0; i<len(origarr); i++{
+		copyarr = append(copyarr, origarr[i])
+	}
+
+	return copyarr
+}
+
+func testEffect(){
+	origarr := generateTest2DArray(4)
+	copyarr:= generateTest2DArray(4)
+	
+	// fmt.Println(origarr == copyarr)
+	// fmt.Println(&origarr == &copyarr)
+
+
+	fmt.Println("before")
+	fmt.Println(origarr)
+	fmt.Println(copyarr)	
+	c,e := clusters.KMeans(20,5, clusters.EuclideanDistance)
+	if e!= nil{
+		panic(e)
+	}
+
+	if e = c.Learn(copyarr); e != nil {
+		panic(e)
+	}
+
+
+	fmt.Println("after")
+	fmt.Println(origarr)
+	fmt.Println(copyarr)	
+	
+
+
+
+}
+
 func main() {
 
-	//testClusters()
 	testClusters()
+
 
 }
