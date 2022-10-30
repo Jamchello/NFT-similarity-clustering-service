@@ -167,7 +167,8 @@ func generateTest2DArray(x int) [][]float64 {
 
 func testClusters(){
 
-	data := generateTest2DArray(200)
+	data := generateTest2DArray(100)
+	
 	var observation []float64
 
 	c,e := clusters.KMeans(200000,8, clusters.EuclideanDistance)
@@ -175,15 +176,24 @@ func testClusters(){
 		panic(e)
 	}
 
-	c.Learn(data);
+// Use the data to train the clusterer
+	if e = c.Learn(data); e != nil {
+		panic(e)
+	}
 
 	fmt.Printf("Clustered data set into %d\n", c.Sizes())
 
 	fmt.Printf("Assigned observation %v to cluster %d\n", observation, c.Predict(observation))
 	
+	// for index, number := range c.Guesses() {
+	// 	fmt.Printf("Assigned data point %v to cluster %d\n", data[index], number)
+	// }
+
 	for index, number := range c.Guesses() {
 		fmt.Printf("Assigned data point %v to cluster %d\n", data[index], number)
 	}
+
+	fmt.Println(c.Guesses())
 }
 
 
@@ -199,6 +209,12 @@ func testClusters(){
 // 	if e = c.learn
 
 // }
+
+//TODO: Implement function to take data -> cluster mapping, create dedicated hashmap from asset -> cluster
+//Figure out how to link back each asset characteristic array to its ID (possibly ignored fields)
+func compare(){
+	return
+}
 
 func main() {
 
