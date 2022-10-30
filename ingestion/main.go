@@ -155,23 +155,35 @@ func generateTest2DArray(x int) [][]float64 {
 			seedNum ++
 			rand.Seed(time.Now().UnixNano() + seedNum)
 			//rand.Intn gens numbers from (0,n) exclusive so we +1 on Intn and +min after so we have min as our minimum value (rather than 0)
-			newArr = append(newArr,float64(rand.Intn(max+1-min) + min))
+			num := float64(rand.Intn(max+1-min) + min)
+			newArr = append(newArr,num)
+			
 		}
+	
 		//then add that new 4 num array to the 2d array
 		testArr = append(testArr, newArr)
+		
 	}
 
+	fmt.Println(testArr)
 	return testArr
 
 }
 
 func testClusters(){
 
-	data := generateTest2DArray(100)
+	data := generateTest2DArray(50)
+
+	
+	//PRINT ORIGINAL ASSET ARRAY
+	for i:=0; i<len(data); i++{
+		fmt.Println(i," Data point ",data[i])
+	}
+
 	
 	var observation []float64
 
-	c,e := clusters.KMeans(200000,8, clusters.EuclideanDistance)
+	c,e := clusters.KMeans(20,5, clusters.EuclideanDistance)
 	if e!= nil{
 		panic(e)
 	}
@@ -185,39 +197,36 @@ func testClusters(){
 
 	fmt.Printf("Assigned observation %v to cluster %d\n", observation, c.Predict(observation))
 	
-	// for index, number := range c.Guesses() {
-	// 	fmt.Printf("Assigned data point %v to cluster %d\n", data[index], number)
-	// }
+
+//WHEN I PRINT DATA AGAIN SOME OF THE ASSET VALUES ARE DIFFERENT
+	for i:=0; i<len(data); i++{
+		fmt.Println(i," Data point ",data[i])
+	}
+
 
 	for index, number := range c.Guesses() {
-		fmt.Printf("Assigned data point %v to cluster %d\n", data[index], number)
+		fmt.Println("Index ",index,"Assigned data point ",data[index]," to cluster ",number)
 	}
 
 	fmt.Println(c.Guesses())
+
+
+	//c.Guesses() contains list of cluster for each asset (index). So c.Guesses()[0] tells us the cluster that data[0] belongs to and so on
+	//can use to create hashmap
+
 }
-
-
-// func compareListings(){
-
-// 	testArr := [][]int32{{20,43,52,70},{10,30,55,24},{42,63,13,78}}
-// 	c, e := clusters.KMeans(1000, 4, clusters.EuclideanDistance)
-// 	if e !=nil{
-// 		panic(e)
-// 	}
-
-// 	//otherwise
-// 	if e = c.learn
-
-// }
 
 //TODO: Implement function to take data -> cluster mapping, create dedicated hashmap from asset -> cluster
 //Figure out how to link back each asset characteristic array to its ID (possibly ignored fields)
+//possibly two hashmaps
+//original asset -> asset characteristic array then asset characteristic array -> cluster
 func compare(){
 	return
 }
 
 func main() {
 
+	//testClusters()
 	testClusters()
 
 }
