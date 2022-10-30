@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -141,77 +140,6 @@ func ListingsHandler(w http.ResponseWriter, r *http.Request) {
 
 
 
-//have to use float64 for KMeans
-func generate2DArray(x int) [][]float64 {
-	testArr := [][]float64{}
-	min:= 0
-	max:= 100
-	seedNum:= int64(1)
-	//generate x amount of 4  num arrs
-	for i:=0; i< x; i++{
-		//GENERATE ARRAY OF 4 NUMBERS
-		newArr:= []float64{}
-		for j:=0; j<4; j++{
-			seedNum ++
-			rand.Seed(time.Now().UnixNano() + seedNum)
-			//rand.Intn gens numbers from (0,n) exclusive so we +1 on Intn and +min after so we have min as our minimum value (rather than 0)
-			num := float64(rand.Intn(max+1-min) + min)
-			newArr = append(newArr,num)
-			
-		}
-	
-		//then add that new 4 num array to the 2d array
-		testArr = append(testArr, newArr)
-		
-	}
-
-	fmt.Println(testArr)
-	return testArr
-
-}
-
-
-func testClusters() ([]int, [][]float64){
-
-	data := generate2DArray(10)
-	copydata := generate2DArray(10)
-
-
-	var observation []float64
-
-	c,e := clusters.KMeans(20,5, clusters.EuclideanDistance)
-	if e!= nil{
-		panic(e)
-	}
-
-// Use the data to train the clusterer
-	if e = c.Learn(copydata); e != nil {
-		panic(e)
-	}
-
-	fmt.Printf("Clustered data set into %d\n", c.Sizes())
-
-	fmt.Printf("Assigned observation %v to cluster %d\n", observation, c.Predict(observation))
-	
-
-	for index, number := range c.Guesses() {
-		fmt.Println("Index ",index,"Assigned data point ",data[index]," to cluster ",number)
-	}
-
-	fmt.Println(c.Guesses())
-	//c.Guesses() contains list of cluster for each asset (index) in original indexing order. So c.Guesses()[0] tells us the cluster that data[0] belongs to and so on
-	//can use to create hashmap
-	return c.Guesses(), data
-
-
-
-}
-
-//TODO: test_Clusters(asset?, assetlist)
-//take the assetlist, then make a 2d array of the asset characteristics, do analysis as in the above method.
-//Then we can utilise the fact that assetlist[i]==data[i]== c.Guess()[i], we can create an a cluster -> assetlist mapping with the asset ID's tagged onto the asset objects stored in the map
-//kind of shitty but might work
-//could do asset -> cluster mapping but would require entire entryset analysis to find all assets within the same cluster for analysis
 
 func Clusters(assetList [] Asset) (map[uint64]int, map[int][]Asset) {
 	data := arrayifyAssets(assetList)
@@ -263,7 +191,7 @@ func arrayifyAssets(assets []Asset) [][4]float64 {
 
 func main() {
 
-	testClusters()
+	Clusters()
 
 
 }
