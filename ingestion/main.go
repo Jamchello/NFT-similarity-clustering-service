@@ -142,7 +142,7 @@ func ListingsHandler(w http.ResponseWriter, r *http.Request) {
 
 
 //have to use float64 for KMeans
-func generateTest2DArray(x int) [][]float64 {
+func generate2DArray(x int) [][]float64 {
 	testArr := [][]float64{}
 	min:= 0
 	max:= 100
@@ -170,10 +170,10 @@ func generateTest2DArray(x int) [][]float64 {
 
 }
 
-func testClusters(){
+func testClusters() ([]int, [][]float64){
 
-	data := generateTest2DArray(10)
-	copydata := generateTest2DArray(10)
+	data := generate2DArray(10)
+	copydata := generate2DArray(10)
 
 
 	var observation []float64
@@ -198,10 +198,11 @@ func testClusters(){
 	}
 
 	fmt.Println(c.Guesses())
-
-
-	//c.Guesses() contains list of cluster for each asset (index). So c.Guesses()[0] tells us the cluster that data[0] belongs to and so on
+	//c.Guesses() contains list of cluster for each asset (index) in original indexing order. So c.Guesses()[0] tells us the cluster that data[0] belongs to and so on
 	//can use to create hashmap
+	return c.Guesses(), data
+
+
 
 }
 
@@ -209,8 +210,25 @@ func testClusters(){
 //Figure out how to link back each asset characteristic array to its ID (possibly ignored fields)
 //possibly two hashmaps
 //original asset -> asset characteristic array then asset characteristic array -> cluster
-func compare(){
-	return
+
+
+//Currently implements a map from cluster -> list of assets for that cluster using the outputs from the testClusters method
+func compare(cluster []int, data [][]float64 ){
+	ClusterToAsset := make(map[int][][]float64)
+	for index, number := range cluster{
+		//fetch current asset from data list using the fact that data[i] corresponds with cluster[i]
+		currentAsset := data[index]
+		//fetch assets for the current cluster that are already in the map
+		current_clusterAssets := ClusterToAsset[number]
+		//append new asset to asset list
+		new_clusterAssets:= append(current_clusterAssets, currentAsset)
+		//Put the new asset list (value) in for the current cluster (key)
+		ClusterToAsset[number] = new_clusterAssets 
+	}
+
+	//now for each cluster we can fetch all assets within the same cluster
+	// could be useful for comparison ??
+	
 }
 
 func deepCopyArr(origarr [][]float64) [][]float64{
@@ -223,12 +241,8 @@ func deepCopyArr(origarr [][]float64) [][]float64{
 }
 
 func testEffect(){
-	origarr := generateTest2DArray(4)
-	copyarr:= generateTest2DArray(4)
-	
-	// fmt.Println(origarr == copyarr)
-	// fmt.Println(&origarr == &copyarr)
-
+	origarr := generate2DArray(4)
+	copyarr:= generate2DArray(4)
 
 	fmt.Println("before")
 	fmt.Println(origarr)
@@ -237,19 +251,12 @@ func testEffect(){
 	if e!= nil{
 		panic(e)
 	}
-
 	if e = c.Learn(copyarr); e != nil {
 		panic(e)
 	}
-
-
 	fmt.Println("after")
 	fmt.Println(origarr)
 	fmt.Println(copyarr)	
-	
-
-
-
 }
 
 func main() {
