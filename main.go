@@ -104,12 +104,10 @@ func startPolling(db *sql.DB) {
 		}
 
 		fmt.Printf("Ingested %d sales, %d new asset updates, ActiveListings changed length: %d (change of %d)\n", len(newSales), len(newAssets), len(activeListings), len(activeListings)-prevNumberActive)
-		if len(newAssets) > 0 {
-			//Re-perform clustering if new assets minted
-			assets := ReadAllAssets(db)
-			UpdateAssetsMapping(assets)
-			PerformClustering(assets)
-		}
+		assets := ReadAllAssets(db)
+		UpdateAssetsMapping(assets)
+		PerformClustering(assets)
+
 	}
 }
 
@@ -121,4 +119,5 @@ func main() {
 	mux.HandleFunc("/similar", SimilarAssetsHandler)
 	mux.HandleFunc("/assets", AssetHandler)
 	http.ListenAndServe(":8080", mux)
+	fmt.Println("Server listening on port 8080")
 }
