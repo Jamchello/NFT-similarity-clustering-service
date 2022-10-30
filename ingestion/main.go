@@ -111,7 +111,6 @@ func startPolling(db *sql.DB) {
 }
 
 
-
 // Temporary handler to debug, need to flesh out the actual handler once we have the data...
 func ListingsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -137,10 +136,6 @@ func ListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
-
-
-
 func Clusters(assetList [] Asset) (map[uint64]int, map[int][]Asset) {
 	data := arrayifyAssets(assetList)
 	
@@ -158,7 +153,6 @@ func Clusters(assetList [] Asset) (map[uint64]int, map[int][]Asset) {
 
 	//asset -> cluster
 	//cluster -> asset list
-
 	assetToCluster := make(map[uint64]int)
 	ClusterToAssets := make(map[int][]Asset)
 
@@ -171,32 +165,24 @@ func Clusters(assetList [] Asset) (map[uint64]int, map[int][]Asset) {
 		//insert cluster number as key and value as the given array with givenAsset appended to it
 		ClusterToAssets[number] = append(ClusterToAssets[number], givenAsset)
 	}
-
 	return assetToCluster, ClusterToAssets
-
 
 }
 
-func arrayifyAssets(assets []Asset) [][4]float64 {
+func arrayifyAssets(assets []Asset) [][]float64 {
 
-	var asArray = make([][4]float64, len(assets))
+	var asArray = make([][]float64, len(assets))
 	for i, asset := range assets {
-			asArray[i] = [4]float64{float64(asset.Combat), float64(asset.Constitution), float64(asset.Plunder), float64(asset.Luck)}
+			asArray[i] = []float64{float64(asset.Combat), float64(asset.Constitution), float64(asset.Plunder), float64(asset.Luck)}
 	}
 	return asArray
 }
 
-
-
-
 func main() {
 	db := initialLoad()
     defer db.Close()
-
     go startPolling(db)
-
     mux := http.NewServeMux()
-
     mux.HandleFunc("/listing", ListingsHandler)
 
 	//Clusters()
