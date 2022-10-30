@@ -170,6 +170,7 @@ func generate2DArray(x int) [][]float64 {
 
 }
 
+
 func testClusters() ([]int, [][]float64){
 
 	data := generate2DArray(10)
@@ -206,67 +207,59 @@ func testClusters() ([]int, [][]float64){
 
 }
 
-//TODO test_Clusters(asset?, assetlist)
+//TODO: test_Clusters(asset?, assetlist)
 //take the assetlist, then make a 2d array of the asset characteristics, do analysis as in the above method.
 //Then we can utilise the fact that assetlist[i]==data[i]== c.Guess()[i], we can create an a cluster -> assetlist mapping with the asset ID's tagged onto the asset objects stored in the map
 //kind of shitty but might work
 //could do asset -> cluster mapping but would require entire entryset analysis to find all assets within the same cluster for analysis
 
-
-
-
-//TODO: Implement function to take data -> cluster mapping, create dedicated hashmap from asset -> cluster
-//Figure out how to link back each asset characteristic array to its ID (possibly ignored fields)
-//possibly two hashmaps
-//original asset -> asset characteristic array then asset characteristic array -> cluster
-
-
-//Currently implements a map from cluster -> list of assets for that cluster using the outputs from the testClusters method
-func compare(cluster []int, data [][]float64 ){
-	ClusterToAsset := make(map[int][][]float64)
-	for index, number := range cluster{
-		//fetch current asset from data list using the fact that data[i] corresponds with cluster[i]
-		currentAsset := data[index]
-		//fetch assets for the current cluster that are already in the map
-		current_clusterAssets := ClusterToAsset[number]
-		//append new asset to asset list
-		new_clusterAssets:= append(current_clusterAssets, currentAsset)
-		//Put the new asset list (value) in for the current cluster (key)
-		ClusterToAsset[number] = new_clusterAssets 
-	}
-
-	//now for each cluster we can fetch all assets within the same cluster
-	// could be useful for comparison ??
+func Clusters(assetList [] Asset) (map[uint64]int, map[int][]Asset) {
+	data := arrayifyAssets(assetList)
 	
-}
-
-func deepCopyArr(origarr [][]float64) [][]float64{
-	copyarr:= [][]float64{}
-	for i:=0; i<len(origarr); i++{
-		copyarr = append(copyarr, origarr[i])
-	}
-
-	return copyarr
-}
-
-func testEffect(){
-	origarr := generate2DArray(4)
-	copyarr:= generate2DArray(4)
-
-	fmt.Println("before")
-	fmt.Println(origarr)
-	fmt.Println(copyarr)	
 	c,e := clusters.KMeans(20,5, clusters.EuclideanDistance)
 	if e!= nil{
 		panic(e)
 	}
-	if e = c.Learn(copyarr); e != nil {
+
+// Use the data to train the clusterer
+	if e = c.Learn(data); e != nil {
 		panic(e)
 	}
-	fmt.Println("after")
-	fmt.Println(origarr)
-	fmt.Println(copyarr)	
+
+	fmt.Printf("Clustered data set into %d\n", c.Sizes())
+
+	//asset -> cluster
+	//cluster -> asset list
+
+	assetToCluster := make(map[uint64]int)
+	ClusterToAssets := make(map[int][]Asset)
+
+	for index, number := range c.Guesses(){
+		assetCluster:= number
+		givenAsset := assetList[index]
+		//insert into hashmap Asset ID as key and then the cluster number for the value
+		assetToCluster[givenAsset.ID] = assetCluster
+
+		//insert cluster number as key and value as the given array with givenAsset appended to it
+		ClusterToAssets[number] = append(ClusterToAssets[number], givenAsset)
+	}
+
+	return assetToCluster, ClusterToAssets
+
+
 }
+
+func arrayifyAssets(assets []Asset) [][4]float64 {
+
+	var asArray = make([][4]float64, len(assets))
+	for i, asset := range assets {
+			asArray[i] = [4]float64{float64(asset.Combat), float64(asset.Constitution), float64(asset.Plunder), float64(asset.Luck)}
+	}
+	return asArray
+}
+
+
+
 
 func main() {
 
