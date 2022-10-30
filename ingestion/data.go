@@ -224,3 +224,17 @@ func GetLastAssetUpdate(db *sql.DB) uint {
 	}
 	return latestIngestedRound
 }
+
+func ReadAllAssets(db *sql.DB) []Asset {
+	assets := []Asset{}
+	rows, _ := db.Query("SELECT `ID`, `UpdatedAt`, `Collection`, `ImageUrl`, `Combat`, `Constitution`, `Luck`, `Plunder`, `Scenery`, `LeftArm`, `Body`, `BackItem`, `Pants`, `Footwear`, `RightArm`, `Shirts`, `HipItem`, `Tattoo`, `Face`, `BackgroundAccent`, `Necklace`, `Hat`, `Head`, `Background`, `FacialHair`, `BackHand`, `FrontHand`, `Overcoat`, `Pet` FROM asset")
+	for rows.Next() {
+		asset := Asset{}
+		err := rows.Scan(&asset.ID, &asset.UpdatedAt, &asset.Collection, &asset.ImageUrl, &asset.Combat, &asset.Constitution, &asset.Luck, &asset.Plunder, &asset.Scenery, &asset.LeftArm, &asset.Body, &asset.BackItem, &asset.Pants, &asset.Footwear, &asset.RightArm, &asset.Shirts, &asset.HipItem, &asset.Tattoo, &asset.Face, &asset.BackgroundAccent, &asset.Necklace, &asset.Hat, &asset.Head, &asset.BackHand, &asset.FacialHair, &asset.BackHand, &asset.FrontHand, &asset.Overcoat, &asset.Pet)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		assets = append(assets, asset)
+	}
+	return assets
+}
