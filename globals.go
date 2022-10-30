@@ -1,11 +1,6 @@
 package main
 
-import "database/sql"
-
 var NumOfClusters = 5
-
-// TODO: Alias the database, make the insertions etc a function of this...
-var Database *sql.DB
 
 // This file initializes the global maps used to store data within the program.
 var IdToAsset = map[uint64]Asset{}

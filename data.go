@@ -9,35 +9,35 @@ import (
 )
 
 type Asset struct {
-	ID               uint64
-	UpdatedAt        uint
-	Collection       string
-	ImageUrl         string
-	Combat           uint64
-	Constitution     uint64
-	Luck             uint64
-	Plunder          uint64
-	Scenery          string
-	LeftArm          string
-	Body             string
-	BackItem         string
-	Pants            string
-	Footwear         string
-	RightArm         string
-	Shirts           string
-	Hat              string
-	HipItem          string
-	Tattoo           string
-	Face             string
-	BackgroundAccent string
-	Necklace         string
-	Head             string
-	Background       string
-	FacialHair       string
-	BackHand         string
-	FrontHand        string
-	Overcoat         string
-	Pet              string
+	ID               uint64 `json:"Id"`
+	UpdatedAt        uint   `json:"UpdatedAt,omitempty"`
+	Collection       string `json:"Collection"`
+	ImageUrl         string `json:"ImageUrl"`
+	Combat           uint64 `json:"Combat"`
+	Constitution     uint64 `json:"Constitution"`
+	Luck             uint64 `json:"Luck"`
+	Plunder          uint64 `json:"Plunder"`
+	Scenery          string `json:"Scenery,omitempty"`
+	LeftArm          string `json:"LeftArm,omitempty"`
+	Body             string `json:"Body,omitempty"`
+	BackItem         string `json:"BackItem,omitempty"`
+	Pants            string `json:"Pants,omitempty"`
+	Footwear         string `json:"Footwear,omitempty"`
+	RightArm         string `json:"RightArm,omitempty"`
+	Shirts           string `json:"Shirts,omitempty"`
+	Hat              string `json:"Hat,omitempty"`
+	HipItem          string `json:"HipItem,omitempty"`
+	Tattoo           string `json:"Tattoo,omitempty"`
+	Face             string `json:"Face,omitempty"`
+	BackgroundAccent string `json:"BackgroundAccent,omitempty"`
+	Necklace         string `json:"Necklace,omitempty"`
+	Head             string `json:"Head,omitempty"`
+	Background       string `json:"Background,omitempty"`
+	FacialHair       string `json:"FacialHair,omitempty"`
+	BackHand         string `json:"BackHand,omitempty"`
+	FrontHand        string `json:"FrontHand,omitempty"`
+	Overcoat         string `json:"Overcoat,omitempty"`
+	Pet              string `json:"Pet,omitempty"`
 }
 
 type Sale struct {

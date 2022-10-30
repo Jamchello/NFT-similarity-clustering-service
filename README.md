@@ -1,4 +1,4 @@
-# Ingestion
+# AlgoSeas Hackathon
 
 This piece of software is responsible for fetching every Algoseas NFT which has been minted, and had the stats claimed.
 Additionally, whilst the software is being executed, it will continuously poll for new mints & updates to metadata via contract events extracted via AlgoIndexer, and also poll for new listings of the pirates via the Algoseas marketplace API.

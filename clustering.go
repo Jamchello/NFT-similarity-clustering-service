@@ -29,8 +29,6 @@ func PerformClustering(assetList []Asset) {
 		return
 	}
 
-	fmt.Printf("Clustered data set into %d\n", c.Sizes())
-
 	//Resetting existing mappings of Cluster:Assets
 	for i := 0; i < NumOfClusters; i++ {
 		ClusterToAssetIds[i] = []uint64{}

@@ -55,6 +55,31 @@ func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: Return an assets data given its ID
 func AssetHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		assetIdStr := r.URL.Query().Get("assetId")
+		if assetIdStr == "" {
+			http.Error(w, "Invalid assetId", http.StatusBadRequest)
+			return
+		}
+		assetId, err := strconv.ParseUint(assetIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "Invalid assetId", http.StatusBadRequest)
+			return
+		}
+
+		asset, ok := IdToAsset[assetId]
+		if !ok {
+			http.Error(w, "Asset does not exist / has no metadata", http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(asset)
+
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
 }
