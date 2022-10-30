@@ -4,7 +4,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/mpraski/clusters"
 )
 
 func initialLoad() *sql.DB {
@@ -46,11 +44,12 @@ func initialLoad() *sql.DB {
 	} else {
 		loadAssetIds(db, seenAssets)
 	}
+	assets := ReadAllAssets(db)
+	UpdateAssetsMapping(assets)
+	PerformClustering(assets)
 	fmt.Println("Finished initial load")
 	return db
 }
-
-
 
 func startPolling(db *sql.DB) {
 	tick := time.Tick(1 * time.Minute)
@@ -63,6 +62,8 @@ func startPolling(db *sql.DB) {
 		lastIngestedSale := getLatestIngestedSale(db)
 		sales := GetSales()
 		newSales := []Sale{}
+
+		prevNumberActive := len(IdToListings)
 		for _, item := range sales {
 			saleTime := ParseSaleDate(item.MarketActivity.CreationDate)
 			if lastIngestedSale.Before(saleTime) {
@@ -83,107 +84,44 @@ func startPolling(db *sql.DB) {
 			InsertSale(db, sale)
 		}
 
-		for k := range ActiveListings {
-			delete(ActiveListings, k)
+		for k := range IdToListings {
+			delete(IdToListings, k)
 		}
 
 		activeListings := GetListings()
 		for _, listing := range activeListings {
 			assetId := listing.AssetInformation.Sk
-			currentListing, ok := ActiveListings[assetId]
+			currentListing, ok := IdToListings[assetId]
 			if !ok {
-				ActiveListings[assetId] = listing
+				IdToListings[assetId] = listing
 			} else {
 				currentCreationDate := ParseSaleDate(currentListing.MarketActivity.CreationDate)
 				comparisonCreationDate := ParseSaleDate(listing.MarketActivity.CreationDate)
 
 				if currentCreationDate.Before(comparisonCreationDate) {
 					fmt.Println("Higher Listing found! ", listing.AssetInformation.Listing.ListingID)
-					ActiveListings[assetId] = listing
+					IdToListings[assetId] = listing
 				}
 			}
 		}
 
-		fmt.Printf("Ingested %d sales, %d new asset updates, listingsCache replenished to %d\n", len(newSales), len(newAssets), len(activeListings))
-	}
-}
-
-
-// Temporary handler to debug, need to flesh out the actual handler once we have the data...
-func ListingsHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		assetId := r.URL.Query().Get("assetId")
-		if assetId == "" {
-			http.Error(w, "Invalid assetId", http.StatusBadRequest)
-			return
+		fmt.Printf("Ingested %d sales, %d new asset updates, ActiveListings changed length: %d (change of %d)\n", len(newSales), len(newAssets), len(activeListings), len(activeListings)-prevNumberActive)
+		if len(newAssets) > 0 {
+			//Re-perform clustering if new assets minted
+			assets := ReadAllAssets(db)
+			UpdateAssetsMapping(assets)
+			PerformClustering(assets)
 		}
-
-		listing, ok := ActiveListings[assetId]
-
-		if !ok {
-			http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(listing)
-
-	default:
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
-}
-
-func Clusters(assetList [] Asset) (map[uint64]int, map[int][]Asset) {
-	data := arrayifyAssets(assetList)
-	
-	c,e := clusters.KMeans(20,5, clusters.EuclideanDistance)
-	if e!= nil{
-		panic(e)
-	}
-
-// Use the data to train the clusterer
-	if e = c.Learn(data); e != nil {
-		panic(e)
-	}
-
-	fmt.Printf("Clustered data set into %d\n", c.Sizes())
-
-	//asset -> cluster
-	//cluster -> asset list
-	assetToCluster := make(map[uint64]int)
-	ClusterToAssets := make(map[int][]Asset)
-
-	for index, number := range c.Guesses(){
-		assetCluster:= number
-		givenAsset := assetList[index]
-		//insert into hashmap Asset ID as key and then the cluster number for the value
-		assetToCluster[givenAsset.ID] = assetCluster
-
-		//insert cluster number as key and value as the given array with givenAsset appended to it
-		ClusterToAssets[number] = append(ClusterToAssets[number], givenAsset)
-	}
-	return assetToCluster, ClusterToAssets
-
-}
-
-func arrayifyAssets(assets []Asset) [][]float64 {
-
-	var asArray = make([][]float64, len(assets))
-	for i, asset := range assets {
-			asArray[i] = []float64{float64(asset.Combat), float64(asset.Constitution), float64(asset.Plunder), float64(asset.Luck)}
-	}
-	return asArray
 }
 
 func main() {
 	db := initialLoad()
-    defer db.Close()
-    go startPolling(db)
-    mux := http.NewServeMux()
-    mux.HandleFunc("/listing", ListingsHandler)
-
-	//Clusters()
-
+	defer db.Close()
+	go startPolling(db)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/similar", SimilarAssetsHandler)
+	//TODO: asset endpoint to get data on an asset
+	http.ListenAndServe(":8080", mux)
 
 }
