@@ -54,3 +54,7 @@ func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
+
+// TODO: Return an assets data given its ID
+func AssetHandler(w http.ResponseWriter, r *http.Request) {
+}

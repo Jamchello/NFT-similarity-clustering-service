@@ -33,7 +33,7 @@ func PerformClustering(assetList []Asset) {
 	fmt.Printf("Clustered data set into %d\n", c.Sizes())
 
 	//Clearing out existing assets
-	for i := 0; i < numOfClusters; i++ {
+	for i := 1; i <= numOfClusters; i++ {
 		ClusterToAssetIds[i] = []uint64{}
 		ClusterToActiveAssetIds[i] = []uint64{}
 	}
@@ -50,6 +50,12 @@ func PerformClustering(assetList []Asset) {
 		if isActive {
 			ClusterToActiveAssetIds[number] = append(ClusterToActiveAssetIds[number], asset.ID)
 		}
+	}
+
+	fmt.Println(len(ClusterToAssetIds))
+
+	for k := range ClusterToAssetIds {
+		fmt.Println(k)
 	}
 
 }
