@@ -206,6 +206,15 @@ func testClusters() ([]int, [][]float64){
 
 }
 
+//TODO test_Clusters(asset?, assetlist)
+//take the assetlist, then make a 2d array of the asset characteristics, do analysis as in the above method.
+//Then we can utilise the fact that assetlist[i]==data[i]== c.Guess()[i], we can create an a cluster -> assetlist mapping with the asset ID's tagged onto the asset objects stored in the map
+//kind of shitty but might work
+//could do asset -> cluster mapping but would require entire entryset analysis to find all assets within the same cluster for analysis
+
+
+
+
 //TODO: Implement function to take data -> cluster mapping, create dedicated hashmap from asset -> cluster
 //Figure out how to link back each asset characteristic array to its ID (possibly ignored fields)
 //possibly two hashmaps
