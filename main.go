@@ -1,10 +1,7 @@
-// TODO: Active listings
-// TODO: USD ammt
 package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -45,6 +42,9 @@ func initialLoad() *sql.DB {
 	} else {
 		loadAssetIds(db, seenAssets)
 	}
+	assets := ReadAllAssets(db)
+	UpdateAssetsMapping(assets)
+	PerformClustering(assets)
 	fmt.Println("Finished initial load")
 	return db
 }
@@ -60,6 +60,8 @@ func startPolling(db *sql.DB) {
 		lastIngestedSale := getLatestIngestedSale(db)
 		sales := GetSales()
 		newSales := []Sale{}
+
+		prevNumberActive := len(IdToListings)
 		for _, item := range sales {
 			saleTime := ParseSaleDate(item.MarketActivity.CreationDate)
 			if lastIngestedSale.Before(saleTime) {
@@ -80,66 +82,43 @@ func startPolling(db *sql.DB) {
 			InsertSale(db, sale)
 		}
 
-		for k := range ActiveListings {
-			delete(ActiveListings, k)
+		for k := range IdToListings {
+			delete(IdToListings, k)
 		}
 
 		activeListings := GetListings()
 		for _, listing := range activeListings {
 			assetId := listing.AssetInformation.Sk
-			currentListing, ok := ActiveListings[assetId]
+			currentListing, ok := IdToListings[assetId]
 			if !ok {
-				ActiveListings[assetId] = listing
+				IdToListings[assetId] = listing
 			} else {
 				currentCreationDate := ParseSaleDate(currentListing.MarketActivity.CreationDate)
 				comparisonCreationDate := ParseSaleDate(listing.MarketActivity.CreationDate)
 
 				if currentCreationDate.Before(comparisonCreationDate) {
 					fmt.Println("Higher Listing found! ", listing.AssetInformation.Listing.ListingID)
-					ActiveListings[assetId] = listing
+					IdToListings[assetId] = listing
 				}
 			}
 		}
 
-		fmt.Printf("Ingested %d sales, %d new asset updates, listingsCache replenished to %d\n", len(newSales), len(newAssets), len(activeListings))
-	}
-}
-
-// Temporary handler to debug, need to flesh out the actual handler once we have the data...
-func ListingsHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		assetId := r.URL.Query().Get("assetId")
-		if assetId == "" {
-			http.Error(w, "Invalid assetId", http.StatusBadRequest)
-			return
+		fmt.Printf("Ingested %d sales, %d new asset updates, ActiveListings changed length: %d (change of %d)\n", len(newSales), len(newAssets), len(activeListings), len(activeListings)-prevNumberActive)
+		if len(newAssets) > 0 {
+			//Re-perform clustering if new assets minted
+			assets := ReadAllAssets(db)
+			UpdateAssetsMapping(assets)
+			PerformClustering(assets)
 		}
-
-		listing, ok := ActiveListings[assetId]
-
-		if !ok {
-			http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(listing)
-
-	default:
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
 
 func main() {
 	db := initialLoad()
 	defer db.Close()
-
 	go startPolling(db)
-
 	mux := http.NewServeMux()
-
-	mux.HandleFunc("/listing", ListingsHandler)
-
+	mux.HandleFunc("/similar", SimilarAssetsHandler)
+	mux.HandleFunc("/assets", AssetHandler)
 	http.ListenAndServe(":8080", mux)
-
 }
