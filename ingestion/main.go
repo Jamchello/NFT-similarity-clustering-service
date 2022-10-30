@@ -15,8 +15,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-var listingsCache = map[string]AlgoSeasListingItem{}
-
 func initialLoad() *sql.DB {
 
 	dbUser := os.Getenv("DB_USER")
@@ -82,23 +80,23 @@ func startPolling(db *sql.DB) {
 			InsertSale(db, sale)
 		}
 
-		for k := range listingsCache {
-			delete(listingsCache, k)
+		for k := range ActiveListings {
+			delete(ActiveListings, k)
 		}
 
 		activeListings := GetListings()
 		for _, listing := range activeListings {
 			assetId := listing.AssetInformation.Sk
-			currentListing, ok := listingsCache[assetId]
+			currentListing, ok := ActiveListings[assetId]
 			if !ok {
-				listingsCache[assetId] = listing
+				ActiveListings[assetId] = listing
 			} else {
 				currentCreationDate := ParseSaleDate(currentListing.MarketActivity.CreationDate)
 				comparisonCreationDate := ParseSaleDate(listing.MarketActivity.CreationDate)
 
 				if currentCreationDate.Before(comparisonCreationDate) {
 					fmt.Println("Higher Listing found! ", listing.AssetInformation.Listing.ListingID)
-					listingsCache[assetId] = listing
+					ActiveListings[assetId] = listing
 				}
 			}
 		}
@@ -117,7 +115,7 @@ func ListingsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		listing, ok := listingsCache[assetId]
+		listing, ok := ActiveListings[assetId]
 
 		if !ok {
 			http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
