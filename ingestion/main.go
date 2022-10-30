@@ -190,8 +190,16 @@ func arrayifyAssets(assets []Asset) [][4]float64 {
 
 
 func main() {
+	db := initialLoad()
+    defer db.Close()
 
-	Clusters()
+    go startPolling(db)
+
+    mux := http.NewServeMux()
+
+    mux.HandleFunc("/listing", ListingsHandler)
+
+	//Clusters()
 
 
 }
