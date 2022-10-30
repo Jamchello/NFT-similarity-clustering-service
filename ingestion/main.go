@@ -7,12 +7,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/mpraski/clusters"
 )
 
 var listingsCache = map[string]AlgoSeasListingItem{}
@@ -50,6 +52,8 @@ func initialLoad() *sql.DB {
 	fmt.Println("Finished initial load")
 	return db
 }
+
+
 
 func startPolling(db *sql.DB) {
 	tick := time.Tick(1 * time.Minute)
@@ -107,6 +111,8 @@ func startPolling(db *sql.DB) {
 	}
 }
 
+
+
 // Temporary handler to debug, need to flesh out the actual handler once we have the data...
 func ListingsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -132,16 +138,70 @@ func ListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
+
+
+//have to use float64 for KMeans
+func generateTest2DArray(x int) [][]float64 {
+	testArr := [][]float64{}
+	min:= 0
+	max:= 100
+	seedNum:= int64(1)
+	//generate x amount of 4  num arrs
+	for i:=0; i< x; i++{
+		//GENERATE ARRAY OF 4 NUMBERS
+		newArr:= []float64{}
+		for j:=0; j<4; j++{
+			seedNum ++
+			rand.Seed(time.Now().UnixNano() + seedNum)
+			//rand.Intn gens numbers from (0,n) exclusive so we +1 on Intn and +min after so we have min as our minimum value (rather than 0)
+			newArr = append(newArr,float64(rand.Intn(max+1-min) + min))
+		}
+		//then add that new 4 num array to the 2d array
+		testArr = append(testArr, newArr)
+	}
+
+	return testArr
+
+}
+
+func testClusters(){
+
+	data := generateTest2DArray(200)
+	var observation []float64
+
+	c,e := clusters.KMeans(200000,8, clusters.EuclideanDistance)
+	if e!= nil{
+		panic(e)
+	}
+
+	c.Learn(data);
+
+	fmt.Printf("Clustered data set into %d\n", c.Sizes())
+
+	fmt.Printf("Assigned observation %v to cluster %d\n", observation, c.Predict(observation))
+	
+	for index, number := range c.Guesses() {
+		fmt.Printf("Assigned data point %v to cluster %d\n", data[index], number)
+	}
+}
+
+
+// func compareListings(){
+
+// 	testArr := [][]int32{{20,43,52,70},{10,30,55,24},{42,63,13,78}}
+// 	c, e := clusters.KMeans(1000, 4, clusters.EuclideanDistance)
+// 	if e !=nil{
+// 		panic(e)
+// 	}
+
+// 	//otherwise
+// 	if e = c.learn
+
+// }
+
 func main() {
-	db := initialLoad()
-	defer db.Close()
 
-	go startPolling(db)
-
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/listing", ListingsHandler)
-
-	http.ListenAndServe(":8080", mux)
+	testClusters()
 
 }
