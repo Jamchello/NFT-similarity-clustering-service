@@ -13,6 +13,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/mpraski/clusters"
 )
 
 func initialLoad() *sql.DB {
@@ -48,6 +49,8 @@ func initialLoad() *sql.DB {
 	fmt.Println("Finished initial load")
 	return db
 }
+
+
 
 func startPolling(db *sql.DB) {
 	tick := time.Tick(1 * time.Minute)
@@ -105,6 +108,7 @@ func startPolling(db *sql.DB) {
 	}
 }
 
+
 // Temporary handler to debug, need to flesh out the actual handler once we have the data...
 func ListingsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -130,16 +134,56 @@ func ListingsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func Clusters(assetList [] Asset) (map[uint64]int, map[int][]Asset) {
+	data := arrayifyAssets(assetList)
+	
+	c,e := clusters.KMeans(20,5, clusters.EuclideanDistance)
+	if e!= nil{
+		panic(e)
+	}
+
+// Use the data to train the clusterer
+	if e = c.Learn(data); e != nil {
+		panic(e)
+	}
+
+	fmt.Printf("Clustered data set into %d\n", c.Sizes())
+
+	//asset -> cluster
+	//cluster -> asset list
+	assetToCluster := make(map[uint64]int)
+	ClusterToAssets := make(map[int][]Asset)
+
+	for index, number := range c.Guesses(){
+		assetCluster:= number
+		givenAsset := assetList[index]
+		//insert into hashmap Asset ID as key and then the cluster number for the value
+		assetToCluster[givenAsset.ID] = assetCluster
+
+		//insert cluster number as key and value as the given array with givenAsset appended to it
+		ClusterToAssets[number] = append(ClusterToAssets[number], givenAsset)
+	}
+	return assetToCluster, ClusterToAssets
+
+}
+
+func arrayifyAssets(assets []Asset) [][]float64 {
+
+	var asArray = make([][]float64, len(assets))
+	for i, asset := range assets {
+			asArray[i] = []float64{float64(asset.Combat), float64(asset.Constitution), float64(asset.Plunder), float64(asset.Luck)}
+	}
+	return asArray
+}
+
 func main() {
 	db := initialLoad()
-	defer db.Close()
+    defer db.Close()
+    go startPolling(db)
+    mux := http.NewServeMux()
+    mux.HandleFunc("/listing", ListingsHandler)
 
-	go startPolling(db)
+	//Clusters()
 
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/listing", ListingsHandler)
-
-	http.ListenAndServe(":8080", mux)
 
 }
