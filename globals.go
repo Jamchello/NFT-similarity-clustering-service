@@ -1,12 +1,19 @@
 package main
 
+import "database/sql"
+
+var NumOfClusters = 5
+
+// TODO: Alias the database, make the insertions etc a function of this...
+var Database *sql.DB
+
 // This file initializes the global maps used to store data within the program.
 var IdToAsset = map[uint64]Asset{}
 var IdToListings = map[string]AlgoSeasListingItem{}
 
 var IdToCluster = map[uint64]int{}
-var ClusterToAssetIds = map[int][]uint64{}
-var ClusterToActiveAssetIds = map[int][]uint64{}
+var ClusterToAssetIds = make([][]uint64, NumOfClusters)
+var ClusterToActiveAssetIds = make([][]uint64, NumOfClusters)
 
 func UpdateAssetsMapping(assets []Asset) {
 	for _, asset := range assets {

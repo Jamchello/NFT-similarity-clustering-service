@@ -51,15 +51,15 @@ func initialLoad() *sql.DB {
 	return db
 }
 
-func startPolling(db *sql.DB) {
+func startPolling() {
 	tick := time.Tick(1 * time.Minute)
 	for range tick {
 		//Update Metadata && Insert newly minted tokens
-		newAssets := GetNewMetadatas(db)
+		newAssets := GetNewMetadatas(Database)
 		for _, asset := range newAssets {
-			InsertAsset(db, asset)
+			InsertAsset(Database, asset)
 		}
-		lastIngestedSale := getLatestIngestedSale(db)
+		lastIngestedSale := getLatestIngestedSale(Database)
 		sales := GetSales()
 		newSales := []Sale{}
 
@@ -81,7 +81,7 @@ func startPolling(db *sql.DB) {
 		}
 
 		for _, sale := range newSales {
-			InsertSale(db, sale)
+			InsertSale(Database, sale)
 		}
 
 		for k := range IdToListings {
@@ -108,7 +108,7 @@ func startPolling(db *sql.DB) {
 		fmt.Printf("Ingested %d sales, %d new asset updates, ActiveListings changed length: %d (change of %d)\n", len(newSales), len(newAssets), len(activeListings), len(activeListings)-prevNumberActive)
 		if len(newAssets) > 0 {
 			//Re-perform clustering if new assets minted
-			assets := ReadAllAssets(db)
+			assets := ReadAllAssets(Database)
 			UpdateAssetsMapping(assets)
 			PerformClustering(assets)
 		}
@@ -116,12 +116,11 @@ func startPolling(db *sql.DB) {
 }
 
 func main() {
-	db := initialLoad()
-	defer db.Close()
-	go startPolling(db)
+	Database := initialLoad()
+	defer Database.Close()
+	go startPolling()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/similar", SimilarAssetsHandler)
 	//TODO: asset endpoint to get data on an asset
 	http.ListenAndServe(":8080", mux)
-
 }

@@ -16,15 +16,14 @@ func arrayifyAssets(assets []Asset) [][]float64 {
 
 func PerformClustering(assetList []Asset) {
 	data := arrayifyAssets(assetList)
-	numOfClusters := 5
 
-	c, e := clusters.KMeans(20, numOfClusters, clusters.EuclideanDistance)
+	c, e := clusters.KMeans(20, NumOfClusters, clusters.EuclideanDistance)
 	if e != nil {
 		fmt.Println("Error in clustering", e)
 		return
 	}
 
-	// Use the data to train the clusterer
+	// Training
 	if e = c.Learn(data); e != nil {
 		fmt.Println("Error in clustering", e)
 		return
@@ -32,30 +31,23 @@ func PerformClustering(assetList []Asset) {
 
 	fmt.Printf("Clustered data set into %d\n", c.Sizes())
 
-	//Clearing out existing assets
-	for i := 1; i <= numOfClusters; i++ {
+	//Resetting existing mappings of Cluster:Assets
+	for i := 0; i < NumOfClusters; i++ {
 		ClusterToAssetIds[i] = []uint64{}
 		ClusterToActiveAssetIds[i] = []uint64{}
 	}
 
-	for index, number := range c.Guesses() {
-		assetCluster := number
+	for index, clusterNumber := range c.Guesses() {
+		clusterIndex := clusterNumber - 1
 		asset := assetList[index]
 		//insert into hashmap Asset ID as key and then the cluster number for the value
-		IdToCluster[asset.ID] = assetCluster
+		IdToCluster[asset.ID] = clusterIndex
 
 		//insert cluster number as key and value as the given array with givenAsset appended to it
-		ClusterToAssetIds[number] = append(ClusterToAssetIds[number], asset.ID)
-		_, isActive := IdToListings[string(asset.ID)]
+		ClusterToAssetIds[clusterIndex] = append(ClusterToAssetIds[clusterIndex], asset.ID)
+		_, isActive := IdToListings[fmt.Sprint(asset.ID)]
 		if isActive {
-			ClusterToActiveAssetIds[number] = append(ClusterToActiveAssetIds[number], asset.ID)
+			ClusterToActiveAssetIds[clusterIndex] = append(ClusterToActiveAssetIds[clusterIndex], asset.ID)
 		}
 	}
-
-	fmt.Println(len(ClusterToAssetIds))
-
-	for k := range ClusterToAssetIds {
-		fmt.Println(k)
-	}
-
 }
