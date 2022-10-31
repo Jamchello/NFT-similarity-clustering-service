@@ -100,4 +100,4 @@ We are using K-Mean clustering as it is one of the most commonly used algorithms
 
 Picking an appropriate number for K (clusters) is slightly more complicated. There are numerous manual inspection methods that you can use such as the [elbow method](https://www.geeksforgeeks.org/elbow-method-for-optimal-value-of-k-in-kmeans/) in order to determine an appropriate value for K, however since we are doing unsupervised learning this obviously isn't an option. There is always some level of ambiguity with K-Means clustering as the appropriate number of clusters varies with the problem you are trying to solve.
 
-As an alternative to visual approaches like the elbow method, we instead opted to use a more general approach. We take our value of K as $k=sqrt{n/2}$ where n is the number of assets
+As an alternative to visual approaches like the elbow method, we instead opted to use a more general approach. We take our value of K as $k=sqrt{n\over2}$ where n is the number of assets
