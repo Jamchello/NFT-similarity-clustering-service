@@ -93,3 +93,7 @@ Once the configuration steps have been completed, simply run the following comma
 `go run .`
 
 Please note that the initial population of the assets could take a while, however once this has been completed the following message will be logged to the console: `Finished initial load`, from this point onwards the API will be exposed and the polling for new data will begin.
+
+### Methodology
+
+We are using K-Mean clustering as it is one of the most commonly used algorithms for grouping unlabeled datasets into clusters, this allows us to group 'similar' assets. For K-Mean clustering, there are two parameters that we need to decide, the number of iterations, and number of clusters (K). Using a very high number of iterations is normally unnecessary since [K-Means converges after 20-50 iterations](https://static.googleusercontent.com/media/research.google.com/vi//pubs/archive/42853.pdf). With that said, computationally it is not expensive or time consuming to run a very large number of iterations.

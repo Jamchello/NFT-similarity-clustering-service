@@ -103,12 +103,21 @@ func startPolling(db *sql.DB) {
 			}
 		}
 
+		// for key, element := range IdToListings{
+		// 	fmt.Println("AssetID: ",key," Listing ID: ",element.AssetInformation.Listing.ListingID)
+
+		// }
+
+		fmt.Println(len(activeListings))
 		fmt.Printf("Ingested %d sales, %d new asset updates, ActiveListings changed length: %d (change of %d)\n", len(newSales), len(newAssets), len(activeListings), len(activeListings)-prevNumberActive)
 		assets := ReadAllAssets(db)
 		UpdateAssetsMapping(assets)
 		PerformClustering(assets)
 
 	}
+	
+	fmt.Println()
+
 }
 
 func main() {
