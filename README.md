@@ -97,5 +97,7 @@ Please note that the initial population of the assets could take a while, howeve
 ### Methodology
 
 We are using K-Mean clustering as it is one of the most commonly used algorithms for grouping unlabeled datasets into clusters, this allows us to group 'similar' assets. For K-Mean clustering, there are two parameters that we need to decide, the number of iterations, and number of clusters (K). Using a very high number of iterations is normally unnecessary since [K-Means converges after 20-50 iterations](https://static.googleusercontent.com/media/research.google.com/vi//pubs/archive/42853.pdf). With that said, computationally it is not expensive or time consuming to run a very large number of iterations.
+
 Picking an appropriate number for K (clusters) is slightly more complicated. There are numerous manual inspection methods that you can use such as the [elbow method](https://www.geeksforgeeks.org/elbow-method-for-optimal-value-of-k-in-kmeans/) in order to determine an appropriate value for K, however since we are doing unsupervised learning this obviously isn't an option. There is always some level of ambiguity with K-Means clustering as the appropriate number of clusters varies with the problem you are trying to solve.
-As an alternative to visual approaches like the elbow method, we instead opted to use a more general approach. We take our value of K as $k=(n/2)^0.5$
+
+As an alternative to visual approaches like the elbow method, we instead opted to use a more general approach. We take our value of K as $k=(n/2)^1/2$ where N is the number of assets
