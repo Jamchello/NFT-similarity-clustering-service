@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/mpraski/clusters"
 )
@@ -15,9 +16,14 @@ func arrayifyAssets(assets []Asset) [][]float64 {
 }
 
 func PerformClustering(assetList []Asset) {
+	// Calculating the number of clusters dynamically
+	numOfClusters := int(math.Sqrt(float64(len(assetList)) / 2))
+	// re-assigning the 2d arrays which map cluster => Asset Ids
+	ClusterToActiveAssetIds = make([][]uint64, numOfClusters)
+	ClusterToAssetIds = make([][]uint64, numOfClusters)
 	data := arrayifyAssets(assetList)
 
-	c, e := clusters.KMeans(20, NumOfClusters, clusters.EuclideanDistance)
+	c, e := clusters.KMeans(50, numOfClusters, clusters.EuclideanDistance)
 	if e != nil {
 		fmt.Println("Error in clustering", e)
 		return
@@ -30,7 +36,7 @@ func PerformClustering(assetList []Asset) {
 	}
 
 	//Resetting existing mappings of Cluster:Assets
-	for i := 0; i < NumOfClusters; i++ {
+	for i := 0; i < numOfClusters; i++ {
 		ClusterToAssetIds[i] = []uint64{}
 		ClusterToActiveAssetIds[i] = []uint64{}
 	}
@@ -43,7 +49,7 @@ func PerformClustering(assetList []Asset) {
 
 		//insert cluster number as key and value as the given array with givenAsset appended to it
 		ClusterToAssetIds[clusterIndex] = append(ClusterToAssetIds[clusterIndex], asset.ID)
-		_, isActive := IdToListings[fmt.Sprint(asset.ID)]
+		_, isActive := IdToListings[asset.ID]
 		if isActive {
 			ClusterToActiveAssetIds[clusterIndex] = append(ClusterToActiveAssetIds[clusterIndex], asset.ID)
 		}
