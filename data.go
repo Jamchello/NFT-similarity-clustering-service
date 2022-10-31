@@ -9,35 +9,40 @@ import (
 )
 
 type Asset struct {
-	ID               uint64 `db:"ID" json:"Id"`
-	UpdatedAt        uint   `db:"UpdatedAt" json:"UpdatedAt,omitempty"`
-	Collection       string `db:"Collection" json:"Collection"`
-	ImageUrl         string `db:"ImageUrl" json:"ImageUrl"`
-	Combat           uint64 `db:"Combat" json:"Combat"`
-	Constitution     uint64 `db:"Constitution" json:"Constitution"`
-	Luck             uint64 `db:"Luck" json:"Luck"`
-	Plunder          uint64 `db:"Plunder" json:"Plunder"`
-	Scenery          string `db:"Scenery" json:"Scenery,omitempty"`
-	LeftArm          string `db:"LeftArm" json:"LeftArm,omitempty"`
-	Body             string `db:"Body" json:"Body,omitempty"`
-	BackItem         string `db:"BackItem" json:"BackItem,omitempty"`
-	Pants            string `db:"Pants" json:"Pants,omitempty"`
-	Footwear         string `db:"Footwear" json:"Footwear,omitempty"`
-	RightArm         string `db:"RightArm" json:"RightArm,omitempty"`
-	Shirts           string `db:"Shirts" json:"Shirts,omitempty"`
-	Hat              string `db:"Hat" json:"Hat,omitempty"`
-	HipItem          string `db:"HipItem" json:"HipItem,omitempty"`
-	Tattoo           string `db:"Tattoo" json:"Tattoo,omitempty"`
-	Face             string `db:"Face" json:"Face,omitempty"`
-	BackgroundAccent string `db:"BackgroundAccent" json:"BackgroundAccent,omitempty"`
-	Necklace         string `db:"Necklace" json:"Necklace,omitempty"`
-	Head             string `db:"Head" json:"Head,omitempty"`
-	Background       string `db:"Background" json:"Background,omitempty"`
-	FacialHair       string `db:"FacialHair" json:"FacialHair,omitempty"`
-	BackHand         string `db:"BackHand" json:"BackHand,omitempty"`
-	FrontHand        string `db:"FrontHand" json:"FrontHand,omitempty"`
-	Overcoat         string `db:"Overcoat" json:"Overcoat,omitempty"`
-	Pet              string `db:"Pet" json:"Pet,omitempty"`
+	ID               uint64 `db:"id" json:"Id"`
+	UpdatedAt        uint   `db:"updatedAt" json:"UpdatedAt,omitempty"`
+	Collection       string `db:"collection" json:"Collection"`
+	ImageUrl         string `db:"imageUrl" json:"ImageUrl"`
+	Combat           uint64 `db:"combat" json:"Combat"`
+	Constitution     uint64 `db:"constitution" json:"Constitution"`
+	Luck             uint64 `db:"luck" json:"Luck"`
+	Plunder          uint64 `db:"plunder" json:"Plunder"`
+	Scenery          string `db:"scenery" json:"Scenery,omitempty"`
+	LeftArm          string `db:"leftArm" json:"LeftArm,omitempty"`
+	Body             string `db:"body" json:"Body,omitempty"`
+	BackItem         string `db:"backItem" json:"BackItem,omitempty"`
+	Pants            string `db:"pants" json:"Pants,omitempty"`
+	Footwear         string `db:"footwear" json:"Footwear,omitempty"`
+	RightArm         string `db:"rightArm" json:"RightArm,omitempty"`
+	Shirts           string `db:"shirts" json:"Shirts,omitempty"`
+	Hat              string `db:"hat" json:"Hat,omitempty"`
+	HipItem          string `db:"hipItem" json:"HipItem,omitempty"`
+	Tattoo           string `db:"tattoo" json:"Tattoo,omitempty"`
+	Face             string `db:"face" json:"Face,omitempty"`
+	BackgroundAccent string `db:"backgroundAccent" json:"BackgroundAccent,omitempty"`
+	Necklace         string `db:"necklace" json:"Necklace,omitempty"`
+	Head             string `db:"head" json:"Head,omitempty"`
+	Background       string `db:"background" json:"Background,omitempty"`
+	FacialHair       string `db:"facialHair" json:"FacialHair,omitempty"`
+	BackHand         string `db:"backHand" json:"BackHand,omitempty"`
+	FrontHand        string `db:"frontHand" json:"FrontHand,omitempty"`
+	Overcoat         string `db:"overcoat" json:"Overcoat,omitempty"`
+	Pet              string `db:"pet" json:"Pet,omitempty"`
+}
+
+type Listing struct {
+	AssetId uint64              `json:"assetId"`
+	Listing AlgoSeasListingData `json:"listing"`
 }
 
 func CreateAssetFromNote(note AlgoSeasNote, collectionName string, assetId string, updatedAt uint) Asset {

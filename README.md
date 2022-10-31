@@ -11,7 +11,7 @@ GET /similar?assetId=x
 GET /assets?assetId=x
 ```
 
-The `similar` route returns the entire set of assets which were clustered with the provided assetId, alongside all active marketplace listings which belong to assets in this cluster.
+The `similar` route returns the 5 most similar assets (calculated via euclidean distance), alongside the 5 most similar listings on the marketplace.
 
 **Request:**
 `curl http://localhost:8080/similar?assetId=815577765`
@@ -55,8 +55,7 @@ The `assets` route allows the MetaData to be queried for any given asset
 
 A MySQL database is used to house all assets information (`asset` table). There is a considerable amount of data, this information is critical to the project, and the fetching of historical data can take some time depending on the speed of Algoindexer API, so it makes sense to persist this information.
 
-TODO: Finsh the explanation here, update below...
-The software maintains an in-memory mapping of asset id => active listings, this allows the quick serving of active listings without the complexity of having to constantly alter a database table - we simple overwrite the map every time the active-listings endpoint is polled for data.
+The software maintains several in-memory hashmaps, the two key mappings are from Asset ID => Listing which allows the quick serving of active listings without the complexity of having to constantly alter a database table - we simple overwrite the map every time the active-listings endpoint is polled for data, and also Asset ID => Asset Object which is used to map between the outputs of similarity calculations, and to serve the `/assets` endpoint.
 
 ## Clustering Algorithm
 

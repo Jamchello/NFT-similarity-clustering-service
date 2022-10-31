@@ -3,10 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 )
 
 type AlgoSeasHistoryItem struct {
@@ -81,29 +79,31 @@ type AlgoSeasNote struct {
 	Standard  string `json:"standard"`
 }
 
-type AlgoSeasListingItem struct {
+type AlgoSeasListingData struct {
+	Date            string `json:"date"`
+	EscrowAddress   string `json:"escrowAddress,omitempty"`
+	Expires         string `json:"expires,omitempty"`
+	IsDutch         bool   `json:"isDutch"`
+	LogicSig        string `json:"logicSig,omitempty"`
+	Marketplace     string `json:"marketplace,omitempty"`
+	MinBidDelta     int    `json:"minBidDelta,omitempty"`
+	NextPayout      string `json:"nextPayout,omitempty"`
+	Seller          string `json:"seller,omitempty"`
+	SnipeThreshold  int    `json:"snipeThreshold,omitempty"`
+	Price           int    `json:"price,omitempty"`
+	Quantity        int    `json:"quantity,omitempty"`
+	Royalty         int    `json:"royalty,omitempty"`
+	RoyaltyString   string `json:"royaltyString,omitempty"`
+	VerifiedRoyalty bool   `json:"verifiedRoyalty,omitempty"`
+	ListingID       int    `json:"listingID"`
+	VariableID      int    `json:"variableID,omitempty"`
+}
+
+type AlgoSeasListingsAsset struct {
 	AssetInformation struct {
-		NName   string `json:"nName"`
-		Sk      string `json:"SK"`
-		Listing struct {
-			Date            string `json:"date"`
-			EscrowAddress   string `json:"escrowAddress"`
-			Expires         string `json:"expires"`
-			IsDutch         bool   `json:"isDutch"`
-			LogicSig        string `json:"logicSig"`
-			Marketplace     string `json:"marketplace"`
-			MinBidDelta     int    `json:"minBidDelta"`
-			NextPayout      string `json:"nextPayout"`
-			Seller          string `json:"seller"`
-			SnipeThreshold  int    `json:"snipeThreshold"`
-			Price           int    `json:"price"`
-			Quantity        int    `json:"quantity"`
-			Royalty         int    `json:"royalty"`
-			RoyaltyString   string `json:"royaltyString"`
-			VerifiedRoyalty bool   `json:"verifiedRoyalty"`
-			ListingID       int    `json:"listingID"`
-			VariableID      int    `json:"variableID"`
-		} `json:"listing"`
+		NName   string              `json:"nName"`
+		Sk      string              `json:"SK"`
+		Listing AlgoSeasListingData `json:"listing"`
 	} `json:"assetInformation"`
 	MarketActivity struct {
 		AlgoAmount               int    `json:"algoAmount"`
@@ -121,25 +121,8 @@ type AlgoSeasListingItem struct {
 	} `json:"marketActivity"`
 }
 
-func ReadDataFromJson() []AlgoSeasHistoryItem {
-	// Open our jsonFile
-	jsonFile, err := os.Open("historicData.json")
-	// if we os.Open returns an error then handle it
-	if err != nil {
-		fmt.Println(err)
-	}
-	// defer the closing of our jsonFile so that we can parse it later on
-	defer jsonFile.Close()
-
-	data := []AlgoSeasHistoryItem{}
-
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	json.Unmarshal(byteValue, &data)
-	return data
-}
-
-func GetListings() []AlgoSeasListingItem {
-	listings := []AlgoSeasListingItem{}
+func GetListings() []AlgoSeasListingsAsset {
+	listings := []AlgoSeasListingsAsset{}
 	res, err := http.Get("https://d3ohz23ah7.execute-api.us-west-2.amazonaws.com/prod/marketplace/listings?type=listing&sortBy=price&sortAscending=false&collectionName=AlgoSeas%20Pirates&limit=500")
 	if err != nil {
 		fmt.Println("Failed to fetch latest listings")
@@ -155,7 +138,7 @@ func GetSales() []AlgoSeasHistoryItem {
 	historyUrl := fmt.Sprintf("https://d3ohz23ah7.execute-api.us-west-2.amazonaws.com/prod/marketplace/sales?collectionName=%s&sortBy=time&sortAscending=false&limit=500", url.QueryEscape("AlgoSeas Pirates"))
 	res, err := http.Get(historyUrl)
 	if err != nil {
-		fmt.Errorf("Failed to fetch %s", historyUrl)
+		fmt.Printf("Failed to fetch %s\n", historyUrl)
 	} else {
 		defer res.Body.Close()
 		json.NewDecoder(res.Body).Decode(&parsed)
