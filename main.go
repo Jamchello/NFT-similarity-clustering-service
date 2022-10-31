@@ -54,7 +54,7 @@ func initialLoad() *sql.DB {
 }
 
 func updateActiveListingsData(db *sql.DB) {
-	activeListings := GetListings()
+	activeListings := GetListings([]AlgoSeasListingItem{}, "")
 	prevNumberActive := len(IdToListings)
 	for k := range IdToListings {
 		delete(IdToListings, k)
