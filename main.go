@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"time"
@@ -43,6 +44,9 @@ func initialLoad() *sql.DB {
 		loadAssetIds(db, seenAssets)
 	}
 	assets := ReadAllAssets(db)
+	NumOfClusters = int(math.Sqrt(float64(len(assets))/2))
+	ClusterToActiveAssetIds = make([][]uint64, NumOfClusters)
+	ClusterToActiveAssetIds = make([][]uint64, NumOfClusters)
 	UpdateAssetsMapping(assets)
 	PerformClustering(assets)
 	fmt.Println("Finished initial load")

@@ -1,14 +1,17 @@
 package main
 
-var NumOfClusters = 5
+var NumOfClusters int
 
 // This file initializes the global maps used to store data within the program.
 var IdToAsset = map[uint64]Asset{}
 var IdToListings = map[string]AlgoSeasListingItem{}
 
 var IdToCluster = map[uint64]int{}
-var ClusterToAssetIds = make([][]uint64, NumOfClusters)
-var ClusterToActiveAssetIds = make([][]uint64, NumOfClusters)
+
+// var ClusterToAssetIds = make([][]uint64, NumOfClusters)
+// var ClusterToActiveAssetIds = make([][]uint64, NumOfClusters)
+var ClusterToAssetIds = [][]uint64{}
+var ClusterToActiveAssetIds = [][]uint64{}
 
 func UpdateAssetsMapping(assets []Asset) {
 	for _, asset := range assets {
