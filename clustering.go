@@ -42,7 +42,8 @@ func contains(list []uint64, element uint64) bool{
 func findSimilarAssets(asset Asset){
 
 	similarAssetIDs := []uint64{}
-	//similarAsset_Listings := make(map[uint64]bool)
+	similarAsset_distance := map[uint64]float64{}
+	similarAsset_Listings :=[]uint64{}
 	//iterate over all assets map
 	for _, current_asset:= range IdToAsset{
 		//when we encounter the asset we are checking against (as its a map) we ignore it
@@ -50,6 +51,7 @@ func findSimilarAssets(asset Asset){
 			//if the similarAssetID list is <5 then we can just fill it
 			if len(similarAssetIDs)<5{
 				similarAssetIDs = append(similarAssetIDs, current_asset.ID)
+				similarAsset_distance[current_asset.ID] = EuclideanDistance(asset, current_asset)
 			//once it contains 5 ids we need to start checking for ones with smaller distances
 			}else{
 				//keep track of similarAsset with highest distance to our passed in asset (asset)
@@ -61,7 +63,7 @@ func findSimilarAssets(asset Asset){
 					if (current_distance > highest_distance){ //if the distance between them is the highest so far then we might want to replace it
 						highest_distance = current_distance //replace highest distance with current distance
 						new_distance :=EuclideanDistance(asset, current_asset) //gets distance between passed in asset and the fetched one from the hashmap
-						//if the distance between the passed asset and the current one from the map is less than the previous current_distance, then we need to put our new_distance asset in to similarAssetIDs
+						//if the distance between the passed asset and the current one from the map is less than the previous current_distance, then we have found a potential replacement
 						if (new_distance < current_distance){
 							replace_index = i 
 							lowerDistance = true
@@ -71,9 +73,27 @@ func findSimilarAssets(asset Asset){
 				//if lowerDistance = true then we replaced one of the similar assets
 				if lowerDistance == true {
 					similarAssetIDs[replace_index] = current_asset.ID
+					similarAsset_distance[current_asset.ID] = EuclideanDistance(asset, current_asset)
+				//need to implement logic for finding similar asset Listings
+			
+				//could make similarAsset_distance a map of assetID -> distance from passed in asset 
+				//we iterate through the similarAsset_Listing array and do similarAssetDistance[i] and see if its lower than that of the new asset
+				//first of all, check if the new similarAsset has a listing (if it doesn't then we don't want to put it into similarListings anyway)
+				_, ok := IdToListings[current_asset.ID]
+				if ok == true{
+					for index, assetID := range(similarAsset_Listings){
+						currentAssetDistance := similarAsset_distance[assetID]  //distance from passed asset to the current iterated similarAsset
+						newAssetDistance := similarAsset_distance[current_asset.ID]  //distance from passed asset to the current iterated (top level for loop) asset
+						//if the distance of our new asset is smaller then we can replace it 
+						if(newAssetDistance < currentAssetDistance){
+							similarAsset_Listings[index] = current_asset.ID
+						}
+
+					}
+				}
+
 				}
 				
-				//need to implement logic for finding similar asset Listings
 
 			}	
 		}
