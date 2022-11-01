@@ -28,6 +28,11 @@ func EuclideanDistance(asset1 Asset, asset2 Asset) float64 {
 
 }
 
+
+func findSimilarAssetListings(asset Asset){
+
+}
+
 //Takes in an asset, and list of assets, then inserts Asset ID and list of similar assets to IdToAsset map
 func findSimilarAssets(asset Asset){
 
@@ -46,10 +51,13 @@ func findSimilarAssets(asset Asset){
 				var replace_index int
 				for i:=0; i<5; i++{
 					current_distance := EuclideanDistance(asset, IdToAsset[similarAssetIDs[i]]) //gets distance between passed in asset and similar asset
-					new_distance :=EuclideanDistance(asset, current_asset) //gets distance between passed in asset and the fetched one from the hashmap
-					if (new_distance < current_distance) && (current_distance > highest_distance){
-						replace_index = i 
-						highest_distance = current_distance
+					if (current_distance > highest_distance){ //if the distance between them is the highest so far then we might want to replace it
+						new_distance :=EuclideanDistance(asset, current_asset) //gets distance between passed in asset and the fetched one from the hashmap
+						//if the distance between the passed asset and the current one from the map is less than the previous current_distance, then we need to put our new_distance asset in to similarAssetIDs
+						if (new_distance < current_distance){
+							replace_index = i 
+							highest_distance = current_distance
+						}
 					}
 				}
 				similarAssetIDs[replace_index] = current_asset.ID
