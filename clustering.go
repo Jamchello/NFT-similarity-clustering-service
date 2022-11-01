@@ -15,6 +15,50 @@ func arrayifyAssets(assets []Asset) [][]float64 {
 	return asArray
 }
 
+
+func EuclideanDistance(asset1 Asset, asset2 Asset) float64 {
+	combat:= math.Pow(float64(asset1.Combat-asset2.Combat),2)
+	constitution:= math.Pow(float64(asset1.Constitution-asset2.Constitution),2)
+	luck := math.Pow(float64(asset1.Luck-asset2.Luck),2)
+	plunder:= math.Pow(float64(asset1.Plunder-asset2.Plunder),2)
+
+	totalDistance:= math.Sqrt(combat + constitution + luck+ plunder)
+	return totalDistance
+
+
+}
+
+//Takes in an asset, and list of assets, then inserts Asset ID and list of similar assets to IdToAsset map
+func findSimilarAssets(asset Asset, assetList []Asset){
+
+	for _, current_asset:= range assetList{
+		similarAssets := []Asset{}
+		similarAssetIDs :=[]uint64{}
+		if current_asset.ID != asset.ID{
+			if len(similarAssets)<5{
+				similarAssets = append(similarAssets, current_asset)
+				similarAssetIDs = append(similarAssetIDs, current_asset.ID)
+			}else{
+				highest_distance:= float64(0)
+				var replace_index int
+				for i:=0; i<5; i++{
+					distance := EuclideanDistance(current_asset, similarAssets[i])
+					if distance > highest_distance{
+						replace_index = i 
+						highest_distance = distance
+					}
+				}
+				if(highest_distance!= 0){
+					similarAssets[replace_index] = current_asset
+					similarAssetIDs[replace_index] = current_asset.ID
+				}
+			}
+			IdToSimilarAssets[current_asset.ID] = similarAssetIDs
+		}
+
+		}
+	}
+
 func PerformClustering(assetList []Asset) {
 	// Calculating the number of clusters dynamically
 	numOfClusters := int(math.Sqrt(float64(len(assetList)) / 2))
