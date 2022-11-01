@@ -39,7 +39,7 @@ func contains(list []uint64, element uint64) bool{
 }
 
 //Takes in an asset, and list of assets, then inserts Asset ID and list of similar assets to IdToAsset map
-func findSimilarAssets(asset Asset){
+func findSimilarAssets(asset Asset) SimilarAssetsReturn{
 
 	similarAssetIDs := []uint64{}
 	similarAsset_distance := map[uint64]float64{}
@@ -81,25 +81,34 @@ func findSimilarAssets(asset Asset){
 				//first of all, check if the new similarAsset has a listing (if it doesn't then we don't want to put it into similarListings anyway)
 				_, ok := IdToListings[current_asset.ID]
 				if ok == true{
+					highestDistance:=float64(0)
+					replace_index:= 0
 					for index, assetID := range(similarAsset_Listings){
 						currentAssetDistance := similarAsset_distance[assetID]  //distance from passed asset to the current iterated similarAsset
+						if(currentAssetDistance > highestDistance){
+							highestDistance = currentAssetDistance
+							replace_index = index
+						}
+					}
 						newAssetDistance := similarAsset_distance[current_asset.ID]  //distance from passed asset to the current iterated (top level for loop) asset
 						//if the distance of our new asset is smaller then we can replace it 
-						if(newAssetDistance < currentAssetDistance){
-							similarAsset_Listings[index] = current_asset.ID
+						if(newAssetDistance < highestDistance){
+							similarAsset_Listings[replace_index] = current_asset.ID
+							delete(similarAsset_distance, similarAsset_Listings[replace_index])
 						}
 
 					}
 				}
 
-				}
+				
 				
 
 			}	
 		}
 	}
-		IdToSimilarAssets[asset.ID] = similarAssetIDs
-
+		//IdToSimilarAssets[asset.ID] = similarAssetIDs
+		returnObject := SimilarAssetsReturn{similarAssetIDs, similarAsset_Listings}
+		return returnObject
 
 			
 }
