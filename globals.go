@@ -4,6 +4,7 @@ package main
 var IdToAsset = map[uint64]Asset{}
 var IdToListings = map[uint64]Listing{}
 var IdToSimilarAssets = map[uint64][]uint64{}
+var IdToSimilarListings = map[int][]Listing{}
 
 
 var IdToCluster = map[uint64]int{}
@@ -25,3 +26,6 @@ func AssetIdsToListings(assetIds []uint64) []Listing {
 	}
 	return listings
 }
+
+
+

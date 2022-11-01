@@ -29,11 +29,20 @@ func EuclideanDistance(asset1 Asset, asset2 Asset) float64 {
 }
 
 
+func contains(list []uint64, element uint64) bool{
+	for _, value := range(list){
+		if(value == element) {
+			return true
+		}
+	}
+	return false
+}
 
 //Takes in an asset, and list of assets, then inserts Asset ID and list of similar assets to IdToAsset map
 func findSimilarAssets(asset Asset){
 
 	similarAssetIDs := []uint64{}
+	similarAsset_Listings := []Listing{}
 	//iterate over all assets map
 	for _, current_asset:= range IdToAsset{
 		similarAssetIDs = []uint64{}
@@ -59,6 +68,17 @@ func findSimilarAssets(asset Asset){
 					}
 				}
 				similarAssetIDs[replace_index] = current_asset.ID
+				// assetListings := []Listing{}
+				//count := 0
+
+				//iterate over similarAssetIDs and find if they have listings associated with them
+				//if they do then append them to assetListings list
+				// for _, assetID := range(similarAssetIDs){
+				// 	listing, exists := IdToListings[assetID]
+				// 	if(exists == true){
+				// 		assetListings = append(assetListings, listing)
+				// 	}
+				// }
 
 			}	
 		}
