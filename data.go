@@ -40,6 +40,12 @@ type Asset struct {
 	Pet              string `db:"pet" json:"Pet,omitempty"`
 }
 
+type SimilarAssetsReturn struct{
+	SimilarAssetIDs []uint64
+	SimilarAssetListingIDs[]uint64
+	
+}
+
 type Listing struct {
 	AssetId uint64              `json:"assetId"`
 	Listing AlgoSeasListingData `json:"listing"`
