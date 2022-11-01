@@ -42,7 +42,7 @@ func contains(list []uint64, element uint64) bool{
 func findSimilarAssets(asset Asset){
 
 	similarAssetIDs := []uint64{}
-	similarAsset_Listings := []Listing{}
+	//similarAsset_Listings := make(map[uint64]bool)
 	//iterate over all assets map
 	for _, current_asset:= range IdToAsset{
 		//when we encounter the asset we are checking against (as its a map) we ignore it
@@ -68,30 +68,21 @@ func findSimilarAssets(asset Asset){
 						}
 					}
 				}
+				//if lowerDistance = true then we replaced one of the similar assets
 				if lowerDistance == true {
 					similarAssetIDs[replace_index] = current_asset.ID
 				}
 				
-				// assetListings := []Listing{}
-				//count := 0
-
-				//iterate over similarAssetIDs and find if they have listings associated with them
-				//if they do then append them to assetListings list
-				// for _, assetID := range(similarAssetIDs){
-				// 	listing, exists := IdToListings[assetID]
-				// 	if(exists == true){
-				// 		assetListings = append(assetListings, listing)
-				// 	}
-				// }
+				//need to implement logic for finding similar asset Listings
 
 			}	
 		}
-		}
+	}
 		IdToSimilarAssets[asset.ID] = similarAssetIDs
 
 
 			
-	}
+}
 
 func PerformClustering(assetList []Asset) {
 	// Calculating the number of clusters dynamically
