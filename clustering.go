@@ -29,16 +29,14 @@ func EuclideanDistance(asset1 Asset, asset2 Asset) float64 {
 }
 
 
-func findSimilarAssetListings(asset Asset){
-
-}
 
 //Takes in an asset, and list of assets, then inserts Asset ID and list of similar assets to IdToAsset map
 func findSimilarAssets(asset Asset){
 
+	similarAssetIDs := []uint64{}
 	//iterate over all assets map
 	for _, current_asset:= range IdToAsset{
-		similarAssetIDs := []uint64{}
+		similarAssetIDs = []uint64{}
 		//when we encounter the asset we are checking against (as its a map) we ignore it
 		if current_asset.ID != asset.ID{
 			//if the similarAssetID list is <5 then we can just fill it
@@ -62,11 +60,13 @@ func findSimilarAssets(asset Asset){
 				}
 				similarAssetIDs[replace_index] = current_asset.ID
 
-			}
-			IdToSimilarAssets[current_asset.ID] = similarAssetIDs
+			}	
 		}
+		}
+		IdToSimilarAssets[asset.ID] = similarAssetIDs
 
-		}
+
+			
 	}
 
 func PerformClustering(assetList []Asset) {
