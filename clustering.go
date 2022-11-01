@@ -29,29 +29,26 @@ func EuclideanDistance(asset1 Asset, asset2 Asset) float64 {
 }
 
 //Takes in an asset, and list of assets, then inserts Asset ID and list of similar assets to IdToAsset map
-func findSimilarAssets(asset Asset, assetList []Asset){
+func findSimilarAssets(asset Asset){
 
-	for _, current_asset:= range assetList{
-		similarAssets := []Asset{}
-		similarAssetIDs :=[]uint64{}
+	for _, current_asset:= range IdToAsset{
+		similarAssetIDs := []uint64{}
 		if current_asset.ID != asset.ID{
-			if len(similarAssets)<5{
-				similarAssets = append(similarAssets, current_asset)
+			if len(similarAssetIDs)<5{
 				similarAssetIDs = append(similarAssetIDs, current_asset.ID)
+
 			}else{
 				highest_distance:= float64(0)
 				var replace_index int
 				for i:=0; i<5; i++{
-					distance := EuclideanDistance(current_asset, similarAssets[i])
+					distance := EuclideanDistance(current_asset, IdToAsset[similarAssetIDs[i]])
 					if distance > highest_distance{
 						replace_index = i 
 						highest_distance = distance
 					}
 				}
-				if(highest_distance!= 0){
-					similarAssets[replace_index] = current_asset
-					similarAssetIDs[replace_index] = current_asset.ID
-				}
+				similarAssetIDs[replace_index] = current_asset.ID
+
 			}
 			IdToSimilarAssets[current_asset.ID] = similarAssetIDs
 		}
