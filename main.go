@@ -6,10 +6,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
+	"golang.org/x/exp/maps"
 )
 
 func initialLoad() *sql.DB {
@@ -26,9 +28,9 @@ func initialLoad() *sql.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	createDb(db)
 	createAssetTable(db)
-	createSaleTable(db)
 	seenAssets := make(map[string]bool)
 	if dbNeedsPopulating(db) {
 		fmt.Println("No Data detected, populating the database")
@@ -42,75 +44,60 @@ func initialLoad() *sql.DB {
 	} else {
 		loadAssetIds(db, seenAssets)
 	}
+	//Assign initial IdToAsset mapping
 	assets := ReadAllAssets(db)
-	UpdateAssetsMapping(assets)
-	PerformClustering(assets)
-	fmt.Println("Finished initial load")
+	for _, asset := range assets {
+		IdToAsset[asset.ID] = asset
+		AddToMainKdTree(asset)
+	}
+	processActiveListings(db)
+	fmt.Println("Finished initial load, Server listening on port 8080")
 	return db
+}
+
+func processActiveListings(db *sql.DB) {
+	activeListings := GetListings()
+	prevNumberActive := len(IdToListings)
+	for k := range IdToListings {
+		delete(IdToListings, k)
+	}
+
+	for _, rawListing := range activeListings {
+		assetId, err := strconv.ParseUint(rawListing.AssetInformation.Sk, 10, 64)
+		if err != nil {
+			fmt.Printf("Failed to convert assetId %s into a Uint", rawListing.AssetInformation.Sk)
+
+		}
+		listing := Listing{assetId, rawListing.AssetInformation.Listing}
+		IdToListings[assetId] = append(IdToListings[assetId], listing)
+	}
+
+	fmt.Printf("ActiveListings changed length: %d (change of %d)\n", len(activeListings), len(activeListings)-prevNumberActive)
+	keys := maps.Keys(IdToListings)
+	assets := AssetIdsToAssets(keys)
+	BuildListingsKdTree(assets)
 }
 
 func startPolling(db *sql.DB) {
 	tick := time.Tick(1 * time.Minute)
 	for range tick {
 		//Update Metadata && Insert newly minted tokens
-		newAssets := GetNewMetadatas(db)
+		newAssets := GetNewMetadata(db)
 		for _, asset := range newAssets {
 			InsertAsset(db, asset)
-		}
-		lastIngestedSale := getLatestIngestedSale(db)
-		sales := GetSales()
-		newSales := []Sale{}
-
-		prevNumberActive := len(IdToListings)
-		for _, item := range sales {
-			saleTime := ParseSaleDate(item.MarketActivity.CreationDate)
-			if lastIngestedSale.Before(saleTime) {
-				newSale := Sale{
-					Date:   saleTime,
-					Tx:     item.MarketActivity.TxnID,
-					Buyer:  item.MarketActivity.InitiatorAddress,
-					Seller: item.MarketActivity.PreviousOwner,
-					Algo:   fmt.Sprintf("%d", item.MarketActivity.AlgoAmount),
-					Fiat:   0,
-					Asset:  uint64(item.MarketActivity.AssetID),
-				}
-				newSales = append(newSales, newSale)
-			}
-		}
-
-		for _, sale := range newSales {
-			InsertSale(db, sale)
-		}
-
-		for k := range IdToListings {
-			delete(IdToListings, k)
-		}
-
-		activeListings := GetListings()
-		for _, listing := range activeListings {
-			assetId := listing.AssetInformation.Sk
-			currentListing, ok := IdToListings[assetId]
-			if !ok {
-				IdToListings[assetId] = listing
+			_, seen := IdToAsset[asset.ID]
+			if seen {
+				RemoveFromMainKdTree(asset)
+				AddToMainKdTree(asset)
 			} else {
-				currentCreationDate := ParseSaleDate(currentListing.MarketActivity.CreationDate)
-				comparisonCreationDate := ParseSaleDate(listing.MarketActivity.CreationDate)
-
-				if currentCreationDate.Before(comparisonCreationDate) {
-					fmt.Println("Higher Listing found! ", listing.AssetInformation.Listing.ListingID)
-					IdToListings[assetId] = listing
-				}
+				AddToMainKdTree(asset)
 			}
+			IdToAsset[asset.ID] = asset
 		}
-
-		fmt.Printf("Ingested %d sales, %d new asset updates, ActiveListings changed length: %d (change of %d)\n", len(newSales), len(newAssets), len(activeListings), len(activeListings)-prevNumberActive)
-		if len(newAssets) > 0 {
-			//Re-perform clustering if new assets minted
-			assets := ReadAllAssets(db)
-			UpdateAssetsMapping(assets)
-			PerformClustering(assets)
-		}
+		fmt.Printf("Ingested %d new asset updates!\n", len(newAssets))
 	}
+
+	fmt.Println()
 }
 
 func main() {

@@ -7,8 +7,8 @@ import (
 )
 
 type SimilarAssetsResponse struct {
-	SimilarAssets   []Asset               `json:"SimilarAssets"`
-	RelatedListings []AlgoSeasListingItem `json:"RelatedListings"`
+	SimilarAssets   []Asset   `json:"SimilarAssets"`
+	RelatedListings []Listing `json:"RelatedListings"`
 }
 
 func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,26 +24,32 @@ func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid assetId", http.StatusBadRequest)
 			return
 		}
-		cluster, ok := IdToCluster[uint64(assetId)]
 
-		if !ok {
-			http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
-			return
+		amountStr := r.URL.Query().Get("amount")
+		var amount int
+		if amountStr == "" {
+			amount = 5 //Default to 5
+		} else {
+			amount, err = strconv.Atoi(amountStr)
+			if err != nil || amount > 25 || amount < 1 {
+				http.Error(w, "Amount must be an integer 0<x<=25", http.StatusBadRequest)
+			}
 		}
 
-		// clusterAssets, ok := ClusterToAssetIds[cluster]
+		similar := GetNMostSimilarIds(assetId, amount)
 
-		// if !ok {
-		// 	http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
-		// 	return
-		// }
-
-		allInCluster := AssetIdsToAssets(ClusterToAssetIds[cluster])
-		activeListingsInCluster := AssetIdsToListings(ClusterToActiveAssetIds[cluster])
+		similarActive := GetNMostSimilarListedIds(assetId, amount)
+		similarAssets := AssetIdsToAssets(similar)
+		relatedListings := AssetIdsToListings(similarActive)
+		relatedListingsFlat := []Listing{}
+		for _, a := range relatedListings {
+			relatedListingsFlat = append(relatedListingsFlat, a...)
+		}
+		// activeListingsInCluster := AssetIdsToListings(ClusterToActiveAssetIds[0])
 
 		response := SimilarAssetsResponse{
-			SimilarAssets:   allInCluster,
-			RelatedListings: activeListingsInCluster,
+			SimilarAssets:   similarAssets,
+			RelatedListings: relatedListingsFlat,
 		}
 
 		w.Header().Set("Content-Type", "application/json")

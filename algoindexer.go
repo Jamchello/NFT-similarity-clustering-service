@@ -156,7 +156,7 @@ func GetMetadataForAsset(assetId string) AlgoSeasNote {
 //		mintedAssets := []string{}
 //
 // TODO: consolidate into single func
-func GetNewMetadatas(db *sql.DB) []Asset {
+func GetNewMetadata(db *sql.DB) []Asset {
 	latestUpdate := GetLastAssetUpdate(db)
 	seenAssets := map[int]bool{}
 	assets := []Asset{}
@@ -206,7 +206,13 @@ func GetAllMintedAssets() []Asset {
 	assets := []Asset{}
 	hasMore := true
 	nextToken := ""
+	i := 0
 	for hasMore {
+		i++
+		if i%10 == 0 {
+			fmt.Printf("Making request number %d to AlgoIndexer, please be patient whilst we scrape all existing NFT's", i)
+		}
+
 		indexerUrl := fmt.Sprintf("https://algoindexer.algoexplorerapi.io/v2/transactions?address=SEASZVO4B4DC3F2SQKQVTQ5WXNVQWMCIPFPWTNQT3KMUX2JEGJ5K76ZC4Q&address-role=sender&tx-type=acfg&next=%s", nextToken)
 		res, err := http.Get(indexerUrl)
 		if err != nil {

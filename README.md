@@ -1,15 +1,65 @@
 # AlgoSeas Hackathon
 
-This piece of software is responsible for fetching every Algoseas NFT which has been minted, and had the stats claimed.
-Additionally, whilst the software is being executed, it will continuously poll for new mints & updates to metadata via contract events extracted via AlgoIndexer, and also poll for new listings of the pirates via the Algoseas marketplace API.
+This project indexes every single AlgoSeas pirate which has been minted & had its stats claimed, and then continuously polls for new assets / updates to the existing metadata via on-chain activity extracted from AlgoIndexer. The software also polls for the set of active listings via the Algoseas Marketplace API.
 
-Additionally, the server exposes the API.... TODO HERE!!
+Upon initial startup, and any successful polling, a KNN clustering algorithm will be used to produce a set of different clusters - each cluster containing a set of Assets which have been deemed similar based upon their stats.
 
-## Design
+The application also exposes a RESTFUL HTTP server on port 8080 with the following routes:
+
+```
+GET /similar?assetId=x
+GET /assets?assetId=x
+```
+
+The `similar` route returns the 5 most similar assets (calculated via euclidean distance), alongside the 5 most similar listings on the marketplace.
+
+**Request:**
+`curl http://localhost:8080/similar?assetId=815577765`
+
+**Response:**
+
+```
+TODO!!
+```
+
+The `assets` route allows the MetaData to be queried for any given asset
+
+**Request:**
+`curl http://localhost:8080/assets?assetId=815577765`
+
+**Response:**
+
+```
+{
+    "Id": 815577765,
+    "UpdatedAt": 22373201,
+    "Collection": "AlgoSeas Pirates",
+    "ImageUrl": "https://cdn.algoseas.io/pirates/14548-full.png",
+    "Combat": 52,
+    "Constitution": 28,
+    "Luck": 37,
+    "Plunder": 56,
+    "Scenery": "Cloud Ocean",
+    "Body": "Seafoam",
+    "Pants": "Violet",
+    "Footwear": "Boots",
+    "HipItem": "Bomb Belt",
+    "Face": "Cigar",
+    "BackgroundAccent": "Seagulls",
+    "Necklace": "Glitter",
+    "Head": "Long Hair"
+}
+```
+
+## System Design
 
 A MySQL database is used to house all assets information (`asset` table). There is a considerable amount of data, this information is critical to the project, and the fetching of historical data can take some time depending on the speed of Algoindexer API, so it makes sense to persist this information.
 
-The software maintains an in-memory mapping of asset id => active listings, this allows the quick serving of active listings without the complexity of having to constantly alter a database table - we simple overwrite the map every time the active-listings endpoint is polled for data.
+The software maintains several in-memory hashmaps, the two key mappings are from Asset ID => Listing which allows the quick serving of active listings without the complexity of having to constantly alter a database table - we simple overwrite the map every time the active-listings endpoint is polled for data, and also Asset ID => Asset Object which is used to map between the outputs of similarity calculations, and to serve the `/assets` endpoint.
+
+## Clustering Algorithm
+
+TODO: Fill this in with detailed explanation as to how the model works, and why we chose how many clusters + how many iterations to train the model with.
 
 ## Running the project
 
@@ -42,3 +92,11 @@ Once the configuration steps have been completed, simply run the following comma
 `go run .`
 
 Please note that the initial population of the assets could take a while, however once this has been completed the following message will be logged to the console: `Finished initial load`, from this point onwards the API will be exposed and the polling for new data will begin.
+
+### Methodology
+
+We are using K-Mean clustering as it is one of the most commonly used algorithms for grouping unlabeled datasets into clusters, this allows us to group 'similar' assets. For K-Mean clustering, there are two parameters that we need to decide, the number of iterations, and number of clusters (K). Using a very high number of iterations is normally unnecessary since [K-Means converges after 20-50 iterations](https://static.googleusercontent.com/media/research.google.com/vi//pubs/archive/42853.pdf). With that said, computationally it is not expensive or time consuming to run a very large number of iterations.
+
+Picking an appropriate number for K (clusters) is slightly more complicated. There are numerous manual inspection methods that you can use such as the [elbow method](https://www.geeksforgeeks.org/elbow-method-for-optimal-value-of-k-in-kmeans/) in order to determine an appropriate value for K, however since we are doing unsupervised learning this obviously isn't an option. There is always some level of ambiguity with K-Means clustering as the appropriate number of clusters varies with the problem you are trying to solve.
+
+As an alternative to visual approaches like the elbow method, we instead opted to use a more general approach. We take our value of K as $k=sqrt{n\over2}$ where n is the number of assets
