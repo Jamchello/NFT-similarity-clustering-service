@@ -48,15 +48,14 @@ func initialLoad() *sql.DB {
 	assets := ReadAllAssets(db)
 	for _, asset := range assets {
 		IdToAsset[asset.ID] = asset
+		AddToMainKdTree(asset)
 	}
-	listedAssets := processActiveListings(db)
-	PerformKnnSearch(listedAssets, IdToSimilarListed)
-	PerformKnnSearch(assets, IdToSimilar)
+	processActiveListings(db)
 	fmt.Println("Finished initial load, Server listening on port 8080")
 	return db
 }
 
-func processActiveListings(db *sql.DB) []Asset {
+func processActiveListings(db *sql.DB) {
 	activeListings := GetListings()
 	prevNumberActive := len(IdToListings)
 	for k := range IdToListings {
@@ -75,7 +74,8 @@ func processActiveListings(db *sql.DB) []Asset {
 
 	fmt.Printf("ActiveListings changed length: %d (change of %d)\n", len(activeListings), len(activeListings)-prevNumberActive)
 	keys := maps.Keys(IdToListings)
-	return AssetIdsToAssets(keys)
+	assets := AssetIdsToAssets(keys)
+	BuildListingsKdTree(assets)
 }
 
 func startPolling(db *sql.DB) {
@@ -85,13 +85,16 @@ func startPolling(db *sql.DB) {
 		newAssets := GetNewMetadata(db)
 		for _, asset := range newAssets {
 			InsertAsset(db, asset)
+			_, seen := IdToAsset[asset.ID]
+			if seen {
+				RemoveFromMainKdTree(asset)
+				AddToMainKdTree(asset)
+			} else {
+				AddToMainKdTree(asset)
+			}
 			IdToAsset[asset.ID] = asset
 		}
 		fmt.Printf("Ingested %d new asset updates!\n", len(newAssets))
-		assetsWithListings := processActiveListings(db)
-		assets := ReadAllAssets(db)
-		PerformKnnSearch(assets, IdToSimilar)
-		PerformKnnSearch(assetsWithListings, IdToSimilarListed)
 	}
 
 	fmt.Println()

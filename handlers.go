@@ -24,25 +24,21 @@ func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid assetId", http.StatusBadRequest)
 			return
 		}
-		similar, ok := IdToSimilar[uint64(assetId)]
 
-		if !ok {
-			http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
-			return
+		amountStr := r.URL.Query().Get("amount")
+		var amount int
+		if amountStr == "" {
+			amount = 5 //Default to 5
+		} else {
+			amount, err = strconv.Atoi(amountStr)
+			if err != nil || amount > 25 || amount < 1 {
+				http.Error(w, "Amount must be an integer 0<x<=25", http.StatusBadRequest)
+			}
 		}
 
-		similarActive, ok := IdToSimilarListed[assetId]
-		if !ok {
-			http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
-			return
-		}
-		// clusterAssets, ok := ClusterToAssetIds[cluster]
+		similar := GetNMostSimilarIds(assetId, amount)
 
-		// if !ok {
-		// 	http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
-		// 	return
-		// }
-
+		similarActive := GetNMostSimilarListedIds(assetId, amount)
 		similarAssets := AssetIdsToAssets(similar)
 		relatedListings := AssetIdsToListings(similarActive)
 		relatedListingsFlat := []Listing{}
