@@ -171,3 +171,11 @@ Once the configuration steps have been completed, simply run the following comma
 `go run .`
 
 Please note that the initial population of the assets could take a while, however once this has been completed the following message will be logged to the console: `Finished initial load`, from this point onwards the API will be exposed and the polling for new data will begin.
+
+## Extensibility, and to the future...
+
+If we wanted to extend this to other collections, we would need to create a new database schema as the current `assset` table is tailored to this collection, so it would probably require a new table & a new set of parsers. Once this has been wired up, you'd also need to add some more logic into the polling/ fetching of all assets so that it fetches the data for the additional collections. For each collection new KdTree would need to be instantiated and populated.
+
+It is also worth noting that this current model can only be used to find similar assets based on numerical properties e.g. `[combat, constitution, luck, plunder]`, as categorical data cannot be used to find a euclidean distance.
+
+A mapping of collection => KdTree, and any other supporting helper functions to go from assetId => collection etc would enable the current model to scale to several different collections.
