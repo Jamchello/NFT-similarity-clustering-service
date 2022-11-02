@@ -210,7 +210,7 @@ func GetAllMintedAssets() []Asset {
 	for hasMore {
 		i++
 		if i%10 == 0 {
-			fmt.Printf("Making request number %d to AlgoIndexer, please be patient whilst we scrape all existing NFT's", i)
+			fmt.Printf("Making request number %d to AlgoIndexer, please be patient whilst we scrape all existing NFT's\n", i)
 		}
 
 		indexerUrl := fmt.Sprintf("https://algoindexer.algoexplorerapi.io/v2/transactions?address=SEASZVO4B4DC3F2SQKQVTQ5WXNVQWMCIPFPWTNQT3KMUX2JEGJ5K76ZC4Q&address-role=sender&tx-type=acfg&next=%s", nextToken)
