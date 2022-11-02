@@ -2,24 +2,107 @@
 
 This project indexes every single AlgoSeas pirate which has been minted & had its stats claimed, and then continuously polls for new assets / updates to the existing metadata via on-chain activity extracted from AlgoIndexer. The software also polls for the set of active listings via the Algoseas Marketplace API.
 
-Upon initial startup, and any successful polling, a KNN clustering algorithm will be used to produce a set of different clusters - each cluster containing a set of Assets which have been deemed similar based upon their stats.
+The application maintains an in-memory KdTree which is a data structure that allows us to add/remove n-dimensional points (in this case [combat, constitution, luck, plunder], and to find the K nearest neighbors (K most similar via euclidean distance)).
 
 The application also exposes a RESTFUL HTTP server on port 8080 with the following routes:
 
 ```
-GET /similar?assetId=x
+GET /similar?assetId=x&amount=y
 GET /assets?assetId=x
 ```
 
-The `similar` route returns the 5 most similar assets (calculated via euclidean distance), alongside the 5 most similar listings on the marketplace.
+The `similar` route returns the y most similar assets (calculated via euclidean distance), alongside any listings associated with the y closest related assets which have active listings.
 
 **Request:**
-`curl http://localhost:8080/similar?assetId=815577765`
+`curl http://localhost:8080/similar?assetId=815577765&amount=2`
 
 **Response:**
 
 ```
-TODO!!
+{
+    "SimilarAssets": [
+        {
+            "Id": 695314315,
+            "UpdatedAt": 20274435,
+            "Collection": "AlgoSeas Pirates",
+            "ImageUrl": "https://test.cdn.algoseas.io/pirates/1174-full.png",
+            "Combat": 57,
+            "Constitution": 53,
+            "Luck": 49,
+            "Plunder": 32,
+            "Scenery": "Majesty",
+            "LeftArm": "Empty",
+            "Body": "Coconut",
+            "BackItem": "Saber",
+            "Pants": "Atlas",
+            "Footwear": "Sandals",
+            "RightArm": "Empty",
+            "Shirts": "Atlas",
+            "Hat": "Flow",
+            "Face": "Serious",
+            "BackgroundAccent": "Grass",
+            "Necklace": "Bird Skull",
+            "FacialHair": "Hook"
+        },
+        {
+            "Id": 700774135,
+            "UpdatedAt": 20783949,
+            "Collection": "AlgoSeas Pirates",
+            "ImageUrl": "https://cdn.algoseas.io/pirates/2147-full.png",
+            "Combat": 57,
+            "Constitution": 53,
+            "Luck": 50,
+            "Plunder": 32,
+            "Scenery": "Cloud Ocean",
+            "Body": "Seafoam",
+            "Pants": "Sea",
+            "Footwear": "Bandages",
+            "Tattoo": "Sailing",
+            "Face": "Cigar",
+            "Head": "Captain",
+            "BackHand": "Darts",
+            "Pet": "Salvador"
+        }
+    ],
+    "RelatedListings": [
+        {
+            "assetId": 695314315,
+            "listing": {
+                "date": "2022-07-10T15:42:13.000Z",
+                "isDutch": false,
+                "marketplace": "algoseas",
+                "minBidDelta": 1000000000,
+                "nextPayout": "BDLXHCWENALYKQUDTOUS6TKVX4K3GBFZYKJK553BQHH3Z34WPZWGOUCA2E",
+                "seller": "BDLXHCWENALYKQUDTOUS6TKVX4K3GBFZYKJK553BQHH3Z34WPZWGOUCA2E",
+                "price": 200000000,
+                "quantity": 1,
+                "royalty": 500,
+                "royaltyString": "AfQNBQ0FDQZ9DISVYGbHb3flVEzYJHJTRPDfbyEHBpc1A2jcMYo0y6qe3bRKOG64bIJUT7yL83p5hxzJrXGe4eHKpQ2YbEnTDF0juPpkscbaHkWdvr+flxXnpRKgX1j773TCegWCbQ0=",
+                "verifiedRoyalty": true,
+                "listingID": 803760500,
+                "variableID": 803760499
+            }
+        },
+        {
+            "assetId": 846289864,
+            "listing": {
+                "date": "2022-09-04T15:40:20.000Z",
+                "isDutch": false,
+                "marketplace": "algoseas",
+                "minBidDelta": 1000000000,
+                "nextPayout": "7QREIXC4JCK3UMFXJZRDWE7UT7A3YQGEYGZRNIZIEBOAWACITLXZYV64TQ",
+                "seller": "7QREIXC4JCK3UMFXJZRDWE7UT7A3YQGEYGZRNIZIEBOAWACITLXZYV64TQ",
+                "price": 5000000,
+                "quantity": 1,
+                "royalty": 500,
+                "royaltyString": "AfQNBQ0FDQZ9DISVYGbHb3flVEzYJHJTRPDfbyEHBpc1A2jcMYo0y6qe3bRKOG64bIJUT7yL83p5hxzJrXGe4eHKpQ2YbEnTDF0juPpkscbaHkWdvr+flxXnpRKgX1j773TCegWCbQ0=",
+                "verifiedRoyalty": true,
+                "listingID": 861012908,
+                "variableID": 861012907
+            }
+        }
+    ]
+}
 ```
 
 The `assets` route allows the MetaData to be queried for any given asset
@@ -57,10 +140,6 @@ A MySQL database is used to house all assets information (`asset` table). There 
 
 The software maintains several in-memory hashmaps, the two key mappings are from Asset ID => Listing which allows the quick serving of active listings without the complexity of having to constantly alter a database table - we simple overwrite the map every time the active-listings endpoint is polled for data, and also Asset ID => Asset Object which is used to map between the outputs of similarity calculations, and to serve the `/assets` endpoint.
 
-## Clustering Algorithm
-
-TODO: Fill this in with detailed explanation as to how the model works, and why we chose how many clusters + how many iterations to train the model with.
-
 ## Running the project
 
 The code is written in **GoLang**, and the database used is **MySQL** - both of these dependencies **must be installed**.
@@ -92,11 +171,3 @@ Once the configuration steps have been completed, simply run the following comma
 `go run .`
 
 Please note that the initial population of the assets could take a while, however once this has been completed the following message will be logged to the console: `Finished initial load`, from this point onwards the API will be exposed and the polling for new data will begin.
-
-### Methodology
-
-We are using K-Mean clustering as it is one of the most commonly used algorithms for grouping unlabeled datasets into clusters, this allows us to group 'similar' assets. For K-Mean clustering, there are two parameters that we need to decide, the number of iterations, and number of clusters (K). Using a very high number of iterations is normally unnecessary since [K-Means converges after 20-50 iterations](https://static.googleusercontent.com/media/research.google.com/vi//pubs/archive/42853.pdf). With that said, computationally it is not expensive or time consuming to run a very large number of iterations.
-
-Picking an appropriate number for K (clusters) is slightly more complicated. There are numerous manual inspection methods that you can use such as the [elbow method](https://www.geeksforgeeks.org/elbow-method-for-optimal-value-of-k-in-kmeans/) in order to determine an appropriate value for K, however since we are doing unsupervised learning this obviously isn't an option. There is always some level of ambiguity with K-Means clustering as the appropriate number of clusters varies with the problem you are trying to solve.
-
-As an alternative to visual approaches like the elbow method, we instead opted to use a more general approach. We take our value of K as $k=sqrt{n\over2}$ where n is the number of assets
