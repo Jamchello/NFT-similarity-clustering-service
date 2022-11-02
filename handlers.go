@@ -24,7 +24,7 @@ func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid assetId", http.StatusBadRequest)
 			return
 		}
-		cluster, ok := IdToCluster[uint64(assetId)]
+		similar, ok := IdToSimilarAssets[assetId]
 
 		if !ok {
 			http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
@@ -38,8 +38,8 @@ func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {
 		// 	return
 		// }
 
-		allInCluster := AssetIdsToAssets(ClusterToAssetIds[cluster])
-		activeListingsInCluster := AssetIdsToListings(ClusterToActiveAssetIds[cluster])
+		allInCluster := AssetIdsToAssets(similar)
+		activeListingsInCluster := AssetIdsToListings(IdToListedIds[assetId])
 
 		response := SimilarAssetsResponse{
 			SimilarAssets:   allInCluster,

@@ -48,7 +48,7 @@ func initialLoad() *sql.DB {
 	for _, asset := range assets {
 		IdToAsset[asset.ID] = asset
 	}
-	PerformClustering(assets)
+	CalculateSimilarities(assets)
 	fmt.Println("Finished initial load")
 	return db
 }
@@ -96,7 +96,7 @@ func startPolling(db *sql.DB) {
 		fmt.Printf("Ingested %d new asset updates!\n", len(newAssets))
 		updateActiveListingsData(db)
 		assets := ReadAllAssets(db)
-		PerformClustering(assets)
+		CalculateSimilarities(assets)
 
 	}
 
