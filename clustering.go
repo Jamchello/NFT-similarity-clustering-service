@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/kyroy/kdtree"
+	"github.com/kyroy/kdtree/points"
 	"github.com/mpraski/clusters"
 )
 
@@ -54,4 +56,42 @@ func PerformClustering(assetList []Asset) {
 			ClusterToActiveAssetIds[clusterIndex] = append(ClusterToActiveAssetIds[clusterIndex], asset.ID)
 		}
 	}
+}
+
+type Data struct {
+	value uint64
+}
+type mypoint struct {
+	points.Point
+	Data Data
+}
+
+func (d *Data) getValue() uint64 {
+	return d.value
+}
+
+func PerformKnnSearch(assets []Asset, mapping map[uint64][]uint64) {
+	tree := kdtree.New([]kdtree.Point{})
+
+	arrayified := arrayifyAssets(assets)
+
+	for i, item := range arrayified {
+		assetId := assets[i].ID
+		pt := &mypoint{
+			Point: *points.NewPoint(item, Data{value: assetId}),
+			Data:  Data{value: assetId},
+		}
+		tree.Insert(pt)
+	}
+
+	for i, vector := range arrayified {
+		closest := tree.KNN(&points.Point{Coordinates: vector, Data: Data{}}, 5)
+		closestIds := []uint64{}
+		for _, pt := range closest {
+			closestIds = append(closestIds, pt.(*mypoint).Data.getValue())
+		}
+		assetId := assets[i].ID
+		mapping[assetId] = closestIds
+	}
+
 }

@@ -11,6 +11,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
+	"golang.org/x/exp/maps"
 )
 
 func initialLoad() *sql.DB {
@@ -48,12 +49,13 @@ func initialLoad() *sql.DB {
 	for _, asset := range assets {
 		IdToAsset[asset.ID] = asset
 	}
-	PerformClustering(assets)
+	// PerformClustering(assets)
+	PerformKnnSearch(assets, IdToSimilar)
 	fmt.Println("Finished initial load")
 	return db
 }
 
-func updateActiveListingsData(db *sql.DB) {
+func processActiveListings(db *sql.DB) []uint64 {
 	activeListings := GetListings()
 	prevNumberActive := len(IdToListings)
 	for k := range IdToListings {
@@ -64,7 +66,6 @@ func updateActiveListingsData(db *sql.DB) {
 		assetId, err := strconv.ParseUint(listing.AssetInformation.Sk, 10, 64)
 		if err != nil {
 			fmt.Printf("Failed to convert assetId %s into a Uint", listing.AssetInformation.Sk)
-			return
 		}
 		currentListing, ok := IdToListings[assetId]
 		if !ok {
@@ -81,6 +82,8 @@ func updateActiveListingsData(db *sql.DB) {
 	}
 
 	fmt.Printf("ActiveListings changed length: %d (change of %d)\n", len(activeListings), len(activeListings)-prevNumberActive)
+	keys := maps.Keys(IdToListings)
+	return keys
 }
 
 func startPolling(db *sql.DB) {
@@ -93,10 +96,10 @@ func startPolling(db *sql.DB) {
 			IdToAsset[asset.ID] = asset
 		}
 		fmt.Printf("Ingested %d new asset updates!\n", len(newAssets))
-		updateActiveListingsData(db)
+		assetsWithListings := processActiveListings(db)
 		assets := ReadAllAssets(db)
-		PerformClustering(assets)
-
+		PerformKnnSearch(assets, IdToSimilar)
+		PerformKnnSearch(AssetIdsToAssets(assetsWithListings), IdToSimilarActive)
 	}
 
 	fmt.Println()
