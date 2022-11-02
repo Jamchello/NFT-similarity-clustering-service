@@ -6,6 +6,8 @@ require github.com/go-sql-driver/mysql v1.6.0
 
 require github.com/joho/godotenv v1.4.0
 
+require gopkg.in/e-XpertSolutions/go-cluster.v1 v1.0.0 // indirect
+
 require (
 	github.com/kyroy/kdtree v0.0.0-20200419114247-70830f883f1d // indirect
 	github.com/kyroy/priority-queue v0.0.0-20180327160706-6e21825e7e0c // indirect

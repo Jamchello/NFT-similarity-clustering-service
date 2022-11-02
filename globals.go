@@ -13,6 +13,8 @@ var MainKdTree = kdtree.New([]kdtree.Point{})
 var SecondaryKdTree *kdtree.KDTree
 var IdToVector = map[uint64][]float64{}
 
+var CategoriesDict = map[string]float64{}
+
 func AddToMainKdTree(asset Asset) {
 	vector := VecoriseAsset(asset)
 	IdToVector[asset.ID] = vector

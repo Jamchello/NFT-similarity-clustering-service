@@ -18,4 +18,6 @@ golang.org/x/exp v0.0.0-20221031165847-c99f073a8326/go.mod h1:CxIveKay+FTh1D0yPZ
 gonum.org/v1/gonum v0.12.0 h1:xKuo6hzt+gMav00meVPUlXwSdoEJP46BR+wdxQEFK2o=
 gonum.org/v1/gonum v0.12.0/go.mod h1:73TDxJfAAHeA8Mk9mf8NlIppyhQNo5GLTcYeqgo2lvY=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/e-XpertSolutions/go-cluster.v1 v1.0.0 h1:MavqONYHWeCjipxgAlDQc1EDWJJLEjfAb6fwPdLzfnk=
+gopkg.in/e-XpertSolutions/go-cluster.v1 v1.0.0/go.mod h1:OMAoE7pjPWZWKkHksVA8tgfHCDDiH2k3KOGyP0n/pEU=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
