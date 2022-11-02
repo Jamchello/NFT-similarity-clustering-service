@@ -49,13 +49,14 @@ func initialLoad() *sql.DB {
 	for _, asset := range assets {
 		IdToAsset[asset.ID] = asset
 	}
-	// PerformClustering(assets)
+	listedAssets := processActiveListings(db)
+	PerformKnnSearch(listedAssets, IdToSimilarListed)
 	PerformKnnSearch(assets, IdToSimilar)
-	fmt.Println("Finished initial load")
+	fmt.Println("Finished initial load, Server listening on port 8080")
 	return db
 }
 
-func processActiveListings(db *sql.DB) []uint64 {
+func processActiveListings(db *sql.DB) []Asset {
 	activeListings := GetListings()
 	prevNumberActive := len(IdToListings)
 	for k := range IdToListings {
@@ -66,27 +67,15 @@ func processActiveListings(db *sql.DB) []uint64 {
 		assetId, err := strconv.ParseUint(rawListing.AssetInformation.Sk, 10, 64)
 		if err != nil {
 			fmt.Printf("Failed to convert assetId %s into a Uint", rawListing.AssetInformation.Sk)
-			return
 
 		}
 		listing := Listing{assetId, rawListing.AssetInformation.Listing}
-		currentListing, ok := IdToListings[assetId]
-		if !ok {
-			IdToListings[assetId] = listing
-		} else {
-			currentCreationDate := ParseDate(currentListing.Listing.Date)
-			comparisonCreationDate := ParseDate(rawListing.MarketActivity.CreationDate)
-
-			if currentCreationDate.Before(comparisonCreationDate) {
-				fmt.Println("Higher Listing found! ", rawListing.AssetInformation.Listing.ListingID)
-				IdToListings[assetId] = listing
-			}
-		}
+		IdToListings[assetId] = append(IdToListings[assetId], listing)
 	}
 
 	fmt.Printf("ActiveListings changed length: %d (change of %d)\n", len(activeListings), len(activeListings)-prevNumberActive)
 	keys := maps.Keys(IdToListings)
-	return keys
+	return AssetIdsToAssets(keys)
 }
 
 func startPolling(db *sql.DB) {
@@ -102,11 +91,10 @@ func startPolling(db *sql.DB) {
 		assetsWithListings := processActiveListings(db)
 		assets := ReadAllAssets(db)
 		PerformKnnSearch(assets, IdToSimilar)
-		PerformKnnSearch(AssetIdsToAssets(assetsWithListings), IdToSimilarActive)
+		PerformKnnSearch(assetsWithListings, IdToSimilarListed)
 	}
 
 	fmt.Println()
-
 }
 
 func main() {
@@ -117,5 +105,4 @@ func main() {
 	mux.HandleFunc("/similar", SimilarAssetsHandler)
 	mux.HandleFunc("/assets", AssetHandler)
 	http.ListenAndServe(":8080", mux)
-	fmt.Println("Server listening on port 8080")
 }

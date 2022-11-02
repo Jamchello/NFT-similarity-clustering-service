@@ -31,7 +31,7 @@ func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		similarActive, ok := IdToSimilarActive[uint64(assetId)]
+		similarActive, ok := IdToSimilarListed[assetId]
 		if !ok {
 			http.Error(w, "No Listing stored for this asset", http.StatusBadRequest)
 			return
@@ -45,11 +45,15 @@ func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {
 
 		similarAssets := AssetIdsToAssets(similar)
 		relatedListings := AssetIdsToListings(similarActive)
+		relatedListingsFlat := []Listing{}
+		for _, a := range relatedListings {
+			relatedListingsFlat = append(relatedListingsFlat, a...)
+		}
 		// activeListingsInCluster := AssetIdsToListings(ClusterToActiveAssetIds[0])
 
 		response := SimilarAssetsResponse{
 			SimilarAssets:   similarAssets,
-			RelatedListings: relatedListings,
+			RelatedListings: relatedListingsFlat,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
