@@ -5,6 +5,7 @@ var IdToAsset = map[uint64]Asset{}
 var IdToListings = map[uint64]AlgoSeasListingItem{}
 var IdToSimilarActive = map[uint64][]uint64{}
 
+
 var IdToSimilar = map[uint64][]uint64{}
 var IdToCluster = map[uint64]int{}
 var ClusterToAssetIds = [][]uint64{}
@@ -18,8 +19,8 @@ func AssetIdsToAssets(assetIds []uint64) []Asset {
 	return assets
 }
 
-func AssetIdsToListings(assetIds []uint64) []AlgoSeasListingItem {
-	listings := make([]AlgoSeasListingItem, len(assetIds))
+func AssetIdsToListings(assetIds []uint64) []Listing {
+	listings := make([]Listing, len(assetIds))
 	for i, assetId := range assetIds {
 		listings[i] = IdToListings[assetId]
 	}

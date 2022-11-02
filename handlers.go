@@ -7,8 +7,8 @@ import (
 )
 
 type SimilarAssetsResponse struct {
-	SimilarAssets   []Asset               `json:"SimilarAssets"`
-	RelatedListings []AlgoSeasListingItem `json:"RelatedListings"`
+	SimilarAssets   []Asset   `json:"SimilarAssets"`
+	RelatedListings []Listing `json:"RelatedListings"`
 }
 
 func SimilarAssetsHandler(w http.ResponseWriter, r *http.Request) {

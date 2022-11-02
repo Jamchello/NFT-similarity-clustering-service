@@ -62,20 +62,23 @@ func processActiveListings(db *sql.DB) []uint64 {
 		delete(IdToListings, k)
 	}
 
-	for _, listing := range activeListings {
-		assetId, err := strconv.ParseUint(listing.AssetInformation.Sk, 10, 64)
+	for _, rawListing := range activeListings {
+		assetId, err := strconv.ParseUint(rawListing.AssetInformation.Sk, 10, 64)
 		if err != nil {
-			fmt.Printf("Failed to convert assetId %s into a Uint", listing.AssetInformation.Sk)
+			fmt.Printf("Failed to convert assetId %s into a Uint", rawListing.AssetInformation.Sk)
+			return
+
 		}
+		listing := Listing{assetId, rawListing.AssetInformation.Listing}
 		currentListing, ok := IdToListings[assetId]
 		if !ok {
 			IdToListings[assetId] = listing
 		} else {
-			currentCreationDate := ParseDate(currentListing.MarketActivity.CreationDate)
-			comparisonCreationDate := ParseDate(listing.MarketActivity.CreationDate)
+			currentCreationDate := ParseDate(currentListing.Listing.Date)
+			comparisonCreationDate := ParseDate(rawListing.MarketActivity.CreationDate)
 
 			if currentCreationDate.Before(comparisonCreationDate) {
-				fmt.Println("Higher Listing found! ", listing.AssetInformation.Listing.ListingID)
+				fmt.Println("Higher Listing found! ", rawListing.AssetInformation.Listing.ListingID)
 				IdToListings[assetId] = listing
 			}
 		}
