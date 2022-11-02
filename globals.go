@@ -2,8 +2,11 @@ package main
 
 // This file initializes the global maps used to store data within the program.
 var IdToAsset = map[uint64]Asset{}
-var IdToListings = map[uint64]Listing{}
+var IdToListings = map[uint64]AlgoSeasListingItem{}
+var IdToSimilarActive = map[uint64][]uint64{}
 
+
+var IdToSimilar = map[uint64][]uint64{}
 var IdToCluster = map[uint64]int{}
 var ClusterToAssetIds = [][]uint64{}
 var ClusterToActiveAssetIds = [][]uint64{}
